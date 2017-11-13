@@ -1,0 +1,15 @@
+﻿<UserControl x:Class="AutoFormGenorator.UserControls.Controls.IntField"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:AutoFormGenorator.UserControls.Controls"
+             mc:Ignorable="d" 
+              d:DesignHeight="40" Width="300">
+    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,5,10,5">
+        <WrapPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <TextBlock Foreground="#757575" FontSize="16" x:Name="DisplayNameTextBlock" Text=" test" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <TextBox x:Name="ValueTextBox" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" PreviewTextInput="ValueTextBox_PreviewTextInput"/>
+        </WrapPanel>
+    </Grid>
+</UserControl>
