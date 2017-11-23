@@ -24,9 +24,9 @@
         </Grid.RowDefinitions>
         <materialDesign:PackIcon Kind="Delete" Height="20" Width="20" VerticalAlignment="Top" HorizontalAlignment="Right" Cursor="Hand" Margin="0,5,10,0" Grid.Column="1" Background="Transparent" x:Name="DeleteItemIcon" />
 
-        <WrapPanel x:Name="ControlWrapPanel" Grid.Row="0" Grid.Column="0" Margin="10,0,0,0">
+        <StackPanel x:Name="ControlWrapPanel" Grid.Row="0" Grid.Column="0" Margin="10,0,0,0">
 
-        </WrapPanel>
+        </StackPanel>
 
         <Separator VerticalAlignment="Top" Margin="10,2,10,0" Grid.Row="1" Grid.ColumnSpan="2"/>
     </Grid>

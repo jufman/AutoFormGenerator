@@ -14,6 +14,8 @@ namespace AutoFormGenorator.Object
         public string ObjectTypeName { get; set; } = string.Empty;
         public string ToolTip { get; set; } = string.Empty;
         public bool Required { get; set; } = false;
+
+        public Type DropDownClass { get; set; }
     }
 
     public enum Types
@@ -23,8 +25,6 @@ namespace AutoFormGenorator.Object
         NestedMulitNode,
         Prop,
         MultiProp,
-        AttributeFill,
-        Attribute,
-        NestedItems,
+        NestedItems
     }
 }

@@ -14,8 +14,6 @@ namespace AutoFormGenorator
     {
         private event Events.Viladate OnViladate;
 
-        private object RootClass;
-
         public UserControls.FormControl BuildFormControl<T>(T RootClass)
         {
             UserControls.FormControl FormControl = new UserControls.FormControl();
@@ -188,20 +186,16 @@ namespace AutoFormGenorator
                 }
             });
 
-            try
+            if (Attribute.IsDefined(Class.GetType(), typeof(Object.FormClass)))
             {
-                Object.FormClass FormClass = RootClass.GetType().GetCustomAttribute<Object.FormClass>();
+                Object.FormClass FormClass = Class.GetType().GetCustomAttribute<Object.FormClass>();
 
-                if (FormClass != null && FormClass.FormValueWidth != -1)
+                if (FormClass.FormValueWidth != -1)
                 {
                     ValueWidth = FormClass.FormValueWidth;
                 }
             }
-            catch
-            {
-
-            }
-
+            
             props.ForEach(PropInfo =>
             {
                 UserControl Control = BuildControl(PropInfo, Class, DisplayNameWidth, ValueWidth);
@@ -314,6 +308,30 @@ namespace AutoFormGenorator
                         }
                     };
                     return IntField;
+                case "Single":
+                    UserControls.Controls.FloatField FloatField = new UserControls.Controls.FloatField(DisplayValue, (float)PropInfo.GetValue(Class));
+                    FloatField.Width = ControlWidth;
+                    FloatField.Height = ControlHeight;
+                    FloatField.DisplayNameTextBlock.Width = DisplayNameWidth;
+                    FloatField.ValueTextBox.Width = ValueWidth;
+                    if (FormField.Required)
+                    {
+                        FloatField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
+                        OnViladate += FloatField.Viladate;
+                    }
+                    if (FormField.ToolTip != string.Empty)
+                    {
+                        FloatField.ValueTextBox.ToolTip = FormField.ToolTip;
+                    }
+                    FloatField.ValueTextBox.TextChanged += (sen, e) =>
+                    {
+                        float FloatValue = 0;
+                        if (float.TryParse(FloatField.ValueTextBox.Text, out FloatValue))
+                        {
+                            PropInfo.SetValue(Class, FloatValue);
+                        }
+                    };
+                    return FloatField;
                 case "Boolean":
                     UserControls.Controls.BooleanField BooleanField = new UserControls.Controls.BooleanField(DisplayValue, (bool)PropInfo.GetValue(Class));
                     BooleanField.Width = ControlWidth;
@@ -356,9 +374,56 @@ namespace AutoFormGenorator
                         PropInfo.SetValue(Class, ColourPickerField.ValueColourPicker.SelectedColor.ToString());
                     };
                     return ColourPickerField;
+                case "ObjectDropdown":
+                    UserControls.Controls.DropdownField DropdownField = new UserControls.Controls.DropdownField(DisplayValue, BuildDropdownItems(FormField.DropDownClass), (string)PropInfo.GetValue(Class));
+                    DropdownField.Width = ControlWidth;
+                    DropdownField.Height = ControlHeight;
+                    DropdownField.DisplayNameTextBlock.Width = DisplayNameWidth;
+                    DropdownField.SelectComboBox.Width = ValueWidth;
+                    DropdownField.SelectComboBox.SelectionChanged += (sen, e) =>
+                    {
+                        ComboBoxItem SelectedItem = (ComboBoxItem) DropdownField.SelectComboBox.SelectedItem;
+                        PropInfo.SetValue(Class, SelectedItem.Tag.ToString());
+                    };
+                    return DropdownField;
             }
 
             return null;
+        }
+
+        private List<UserControls.Controls.DropdownField.DropdownItem> BuildDropdownItems(Type Class)
+        {
+            object DropClass = Activator.CreateInstance(Class);
+
+            List<UserControls.Controls.DropdownField.DropdownItem> DropdownItems = new List<UserControls.Controls.DropdownField.DropdownItem>();
+
+            List<PropertyInfo> RawPropertyInfos = new List<PropertyInfo>(Class.GetProperties().Where(A => A.GetCustomAttributes<Object.FormDropdownItem>().Count() != 0));
+
+            RawPropertyInfos.ForEach(Prop =>
+            {
+                Object.FormDropdownItem FormDropdownItem = (Object.FormDropdownItem)Prop.GetCustomAttribute< Object.FormDropdownItem>();
+
+                string DisplayName = Prop.Name;
+                string Value = Prop.GetValue(DropClass).ToString();
+
+                if (FormDropdownItem.DisplayValue != string.Empty)
+                {
+                    DisplayName = FormDropdownItem.DisplayValue;
+                }
+
+                if (FormDropdownItem.Value != string.Empty)
+                {
+                    Value = FormDropdownItem.Value;
+                }
+
+                DropdownItems.Add(new UserControls.Controls.DropdownField.DropdownItem()
+                {
+                    Name = DisplayName,
+                    Value = Value
+                });
+            });
+
+            return DropdownItems;
         }
 
         private List<PropertyInfo> GetProprites(Type BaseType, Object.Types Type)
