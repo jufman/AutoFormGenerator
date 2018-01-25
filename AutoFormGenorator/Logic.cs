@@ -83,20 +83,27 @@ namespace AutoFormGenorator
 
             List<UserControl> UserControls = new List<UserControl>();
 
+            Object.FormClass FormClass = RootClass.GetType().GetCustomAttribute<Object.FormClass>();
+
             NestedLists.ForEach(PropInfo =>
             {
-                Object.FormClass FormClass = RootClass.GetType().GetCustomAttribute<Object.FormClass>();
+                Object.FormField FormField = (Object.FormField)PropInfo.GetCustomAttributes(typeof(Object.FormField), true).FirstOrDefault();
 
                 UserControls.ListControls.GroupCard RootFieldGroupCard = new UserControls.ListControls.GroupCard();
 
                 System.Collections.IList IList = (System.Collections.IList)PropInfo.GetValue(RootClass, null);
 
                 Type ListType = PropInfo.PropertyType.GetGenericArguments()[0];
-                string DisplayName = ListType.Name;
-
-                if (FormClass != null)
+                if (FormField.NestedListClassType != null)
                 {
-                    DisplayName = FormClass.DisplayName;
+                    ListType = FormField.NestedListClassType;
+                }
+
+                string DisplayName = PropInfo.Name;
+
+                if (FormField.DisplayName != string.Empty)
+                {
+                    DisplayName = FormField.DisplayName;
                 }
 
                 RootFieldGroupCard.AddItemIcon.MouseLeftButtonUp += (s, e) =>
@@ -153,8 +160,16 @@ namespace AutoFormGenorator
 
                 if (NestedSettingsClass == null)
                 {
+                    Object.FormField FormField = (Object.FormField)PropInfo.GetCustomAttributes(typeof(Object.FormField), true).FirstOrDefault();
+
                     Type ListType = PropInfo.PropertyType;
+                    if (FormField.NestedClassType != null)
+                    {
+                        ListType = FormField.NestedClassType;
+                    }
+                    
                     NestedSettingsClass = Activator.CreateInstance(ListType);
+                    PropInfo.SetValue(RootClass, NestedSettingsClass);
                 }
 
                 Controls.AddRange(ProcressClass(NestedSettingsClass));
@@ -404,7 +419,7 @@ namespace AutoFormGenorator
                 Object.FormDropdownItem FormDropdownItem = (Object.FormDropdownItem)Prop.GetCustomAttribute< Object.FormDropdownItem>();
 
                 string DisplayName = Prop.Name;
-                string Value = Prop.GetValue(DropClass).ToString();
+                string Value;
 
                 if (FormDropdownItem.DisplayValue != string.Empty)
                 {
@@ -414,6 +429,10 @@ namespace AutoFormGenorator
                 if (FormDropdownItem.Value != string.Empty)
                 {
                     Value = FormDropdownItem.Value;
+                }
+                else
+                {
+                    Value = Prop.GetValue(DropClass).ToString();
                 }
 
                 DropdownItems.Add(new UserControls.Controls.DropdownField.DropdownItem()

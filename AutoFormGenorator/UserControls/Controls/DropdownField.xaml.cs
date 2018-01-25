@@ -33,7 +33,7 @@ namespace AutoFormGenorator.UserControls.Controls
                 Cbi.Content = DropdownItem.Name;
                 Cbi.Tag = DropdownItem.Value;
 
-                if (SelectedValue != null && DropdownItem.Value == SelectedValue.ToLower())
+                if (SelectedValue != null && DropdownItem.Value.ToLower() == SelectedValue.ToLower())
                 {
                     Cbi.IsSelected = true;
                 }

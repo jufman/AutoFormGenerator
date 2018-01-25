@@ -16,6 +16,8 @@ namespace AutoFormGenorator.Object
         public bool Required { get; set; } = false;
 
         public Type DropDownClass { get; set; }
+        public Type NestedClassType { get; set; } = null;
+        public Type NestedListClassType { get; set; } = null;
     }
 
     public enum Types
