@@ -13,6 +13,9 @@ namespace AutoFormGenorator
     public class Logic
     {
         private event Events.Viladate OnViladate;
+        public event Events.PropertyModified OnPropertyModified;
+
+        public bool HasChnaged { get; set; } = false;
 
         public UserControls.FormControl BuildFormControl<T>(T RootClass)
         {
@@ -22,7 +25,26 @@ namespace AutoFormGenorator
 
             ProcressRootClass(RootClass, FormControl);
 
+            OnPropertyModified += Logic_OnPropertyModified;
+
             return FormControl;
+        }
+
+        private void Logic_OnPropertyModified(string FeildName)
+        {
+            HasChnaged = true;
+        }
+
+        public void SubsceribeToPropertyModified<T>(string FieldName, Action a)
+        {
+            OnPropertyModified += (string LocalFieldName) =>
+            {
+                Type ObjectType = typeof(T);
+                if (ObjectType.FullName + "." + FieldName == LocalFieldName)
+                {
+                    a.Invoke();
+                }
+            };
         }
 
         public bool Compile()
@@ -79,11 +101,13 @@ namespace AutoFormGenorator
 
         private List<UserControl> HandleNestedList(object RootClass)
         {
-            List<PropertyInfo> NestedLists = GetProprites(RootClass.GetType(), Object.Types.NestedList);
+            Type RootClassType = RootClass.GetType();
+
+            List<PropertyInfo> NestedLists = GetProprites(RootClassType, Object.Types.NestedList);
 
             List<UserControl> UserControls = new List<UserControl>();
 
-            Object.FormClass FormClass = RootClass.GetType().GetCustomAttribute<Object.FormClass>();
+            Object.FormClass FormClass = RootClassType.GetCustomAttribute<Object.FormClass>();
 
             NestedLists.ForEach(PropInfo =>
             {
@@ -101,6 +125,8 @@ namespace AutoFormGenorator
 
                 string DisplayName = PropInfo.Name;
 
+                string FieldName = RootClassType.FullName + "." + PropInfo.Name;
+
                 if (FormField.DisplayName != string.Empty)
                 {
                     DisplayName = FormField.DisplayName;
@@ -112,14 +138,16 @@ namespace AutoFormGenorator
 
                     IList.Add(NestedItem);
 
-                    RootFieldGroupCard.ControlsWrapPanel.Children.Add(AddNewListItem(NestedItem, IList, RootFieldGroupCard));
+                    OnPropertyModified?.Invoke(FieldName);
+
+                    RootFieldGroupCard.ControlsWrapPanel.Children.Add(AddNewListItem(NestedItem, IList, RootFieldGroupCard, FieldName));
                 };
 
                 RootFieldGroupCard.DisplayNameTextBlock.Text = DisplayName;
  
                 foreach (object item in IList)
                 {
-                    RootFieldGroupCard.ControlsWrapPanel.Children.Add(AddNewListItem(item, IList, RootFieldGroupCard));
+                    RootFieldGroupCard.ControlsWrapPanel.Children.Add(AddNewListItem(item, IList, RootFieldGroupCard, FieldName));
                 }
                 UserControls.Add(RootFieldGroupCard);
             });
@@ -127,7 +155,7 @@ namespace AutoFormGenorator
             return UserControls;
         }
 
-        private UserControls.ListControls.Item AddNewListItem(object item, System.Collections.IList IList, UserControls.ListControls.GroupCard RootFieldGroupCard)
+        private UserControls.ListControls.Item AddNewListItem(object item, System.Collections.IList IList, UserControls.ListControls.GroupCard RootFieldGroupCard, string FeildName)
         {
             UserControls.ListControls.Item ListControlItem = new UserControls.ListControls.Item();
 
@@ -142,6 +170,7 @@ namespace AutoFormGenorator
                 {
                     RootFieldGroupCard.ControlsWrapPanel.Children.Remove(ListControlItem);
                     IList.Remove(item);
+                    OnPropertyModified?.Invoke(FeildName);
                 }
             };
 
@@ -250,6 +279,8 @@ namespace AutoFormGenorator
                 PropertyType = FormField.ObjectTypeName;
             }
 
+            string FieldName = Class.GetType().FullName + "." + PropInfo.Name;
+
             //var obj = Activator.CreateInstance(Class.GetType());
             //object jh = PropInfo.GetValue(obj, new object[] { });
 
@@ -273,6 +304,8 @@ namespace AutoFormGenorator
                     StringField.ValueTextBox.TextChanged += (sen, e) =>
                     {
                         PropInfo.SetValue(Class, StringField.ValueTextBox.Text);
+
+                        OnPropertyModified?.Invoke(FieldName);
                     };
                     return StringField;
                 case "Double":
@@ -296,6 +329,7 @@ namespace AutoFormGenorator
                         if (double.TryParse(DoubleField.ValueTextBox.Text, out DoubleValue))
                         {
                             PropInfo.SetValue(Class, DoubleValue);
+                            OnPropertyModified?.Invoke(FieldName);
                         }
                     };
                     return DoubleField;
@@ -320,6 +354,7 @@ namespace AutoFormGenorator
                         if (int.TryParse(IntField.ValueTextBox.Text, out IntValue))
                         {
                             PropInfo.SetValue(Class, IntValue);
+                            OnPropertyModified?.Invoke(FieldName);
                         }
                     };
                     return IntField;
@@ -344,6 +379,7 @@ namespace AutoFormGenorator
                         if (float.TryParse(FloatField.ValueTextBox.Text, out FloatValue))
                         {
                             PropInfo.SetValue(Class, FloatValue);
+                            OnPropertyModified?.Invoke(FieldName);
                         }
                     };
                     return FloatField;
@@ -364,10 +400,12 @@ namespace AutoFormGenorator
                     BooleanField.ValueCheckBox.Checked += (sen, e) =>
                     {
                         PropInfo.SetValue(Class, BooleanField.ValueCheckBox.IsChecked);
+                        OnPropertyModified?.Invoke(FieldName);
                     };
                     BooleanField.ValueCheckBox.Unchecked += (sen, e) =>
                     {
                         PropInfo.SetValue(Class, BooleanField.ValueCheckBox.IsChecked);
+                        OnPropertyModified?.Invoke(FieldName);
                     };
                     return BooleanField;
                 case "ColourPicker":
@@ -387,6 +425,7 @@ namespace AutoFormGenorator
                     ColourPickerField.ValueColourPicker.SelectedColorChanged += (sen, e) =>
                     {
                         PropInfo.SetValue(Class, ColourPickerField.ValueColourPicker.SelectedColor.ToString());
+                        OnPropertyModified?.Invoke(FieldName);
                     };
                     return ColourPickerField;
                 case "ObjectDropdown":
@@ -399,6 +438,7 @@ namespace AutoFormGenorator
                     {
                         ComboBoxItem SelectedItem = (ComboBoxItem) DropdownField.SelectComboBox.SelectedItem;
                         PropInfo.SetValue(Class, SelectedItem.Tag.ToString());
+                        OnPropertyModified?.Invoke(FieldName);
                     };
                     return DropdownField;
             }

@@ -48,3 +48,5 @@ C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator
 C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\obj\Release\AutoFormGenorator.g.resources
 C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\obj\Release\AutoFormGenorator.dll
 C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\obj\Release\AutoFormGenorator.pdb
+C:\Users\Justin.Campbell\Documents\Git Repos\Monotring Screen 2.1\MonitoringScreenV2.1\Build\AutoFormGenorator.dll
+C:\Users\Justin.Campbell\Documents\Git Repos\Monotring Screen 2.1\MonitoringScreenV2.1\Build\AutoFormGenorator.pdb
