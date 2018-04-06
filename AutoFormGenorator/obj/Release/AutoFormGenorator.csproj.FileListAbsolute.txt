@@ -18,7 +18,6 @@ C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator
 C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\bin\Release\ru\Xceed.Wpf.AvalonDock.resources.dll
 C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\bin\Release\sv\Xceed.Wpf.AvalonDock.resources.dll
 C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\bin\Release\zh-Hans\Xceed.Wpf.AvalonDock.resources.dll
-C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\obj\Release\AutoFormGenorator.csprojResolveAssemblyReference.cache
 C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\obj\Release\UserControls\Card.g.cs
 C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\obj\Release\UserControls\Controls\BooleanField.g.cs
 C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\obj\Release\UserControls\Controls\ColourPickerField.g.cs
@@ -50,3 +49,4 @@ C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator
 C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\obj\Release\AutoFormGenorator.pdb
 C:\Users\Justin.Campbell\Documents\Git Repos\Monotring Screen 2.1\MonitoringScreenV2.1\Build\AutoFormGenorator.dll
 C:\Users\Justin.Campbell\Documents\Git Repos\Monotring Screen 2.1\MonitoringScreenV2.1\Build\AutoFormGenorator.pdb
+C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\obj\Release\AutoFormGenorator.csprojResolveAssemblyReference.cache

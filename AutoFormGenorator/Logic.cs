@@ -434,6 +434,10 @@ namespace AutoFormGenorator
                     DropdownField.Height = ControlHeight;
                     DropdownField.DisplayNameTextBlock.Width = DisplayNameWidth;
                     DropdownField.SelectComboBox.Width = ValueWidth;
+                    if (FormField.ToolTip != string.Empty)
+                    {
+                        DropdownField.SelectComboBox.ToolTip = FormField.ToolTip;
+                    }
                     DropdownField.SelectComboBox.SelectionChanged += (sen, e) =>
                     {
                         ComboBoxItem SelectedItem = (ComboBoxItem) DropdownField.SelectComboBox.SelectedItem;

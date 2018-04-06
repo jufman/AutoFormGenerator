@@ -5,6 +5,7 @@ C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator
 C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\bin\Debug\Xceed.Wpf.Toolkit.dll
 C:\Users\Justin.Campbell\Documents\Git Repos\Monotring Screen 2.1\MonitoringScreenV2.1\Build\AutoFormGenorator.dll
 C:\Users\Justin.Campbell\Documents\Git Repos\Monotring Screen 2.1\MonitoringScreenV2.1\Build\AutoFormGenorator.pdb
+C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\obj\Debug\AutoFormGenorator.csprojResolveAssemblyReference.cache
 C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\Card.g.cs
 C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\Controls\BooleanField.g.cs
 C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\Controls\ColourPickerField.g.cs
@@ -34,4 +35,3 @@ C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator
 C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\obj\Debug\AutoFormGenorator.g.resources
 C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\obj\Debug\AutoFormGenorator.dll
 C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\obj\Debug\AutoFormGenorator.pdb
-C:\Users\Justin.Campbell\Documents\Git Repos\AutoFormGenorator\AutoFormGenorator\obj\Debug\AutoFormGenorator.csprojResolveAssemblyReference.cache
