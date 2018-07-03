@@ -76,7 +76,10 @@ namespace AutoFormGenorator
 
             UserControls.FieldGroupCard RootFieldGroupCard = new UserControls.FieldGroupCard();
 
-            BuildUserControls(RootClass, GetProprites(RootClass.GetType(), Object.Types.Prop)).ForEach(Control =>
+            List<UserControl> BuiltUserControls = BuildUserControls(RootClass, GetProprites(RootClass.GetType(), Object.Types.Prop));
+
+           
+            BuiltUserControls.ForEach(Control =>
             {
                 RootFieldGroupCard.ControlsWrapPanel.Children.Add(Control);
             });
@@ -91,7 +94,10 @@ namespace AutoFormGenorator
 
             RootFieldGroupCard.DisplayNameTextBlock.Text = DisplayName;
 
-            UserControls.Add(RootFieldGroupCard);
+            if (BuiltUserControls.Count != 0)
+            {
+                UserControls.Add(RootFieldGroupCard);
+            }
 
             UserControls.AddRange(HandleNestedSettings(RootClass));
             UserControls.AddRange(HandleNestedList(RootClass));
@@ -308,6 +314,28 @@ namespace AutoFormGenorator
                         OnPropertyModified?.Invoke(FieldName);
                     };
                     return StringField;
+                case "Password":
+                    UserControls.Controls.PasswordField PasswordField = new UserControls.Controls.PasswordField(DisplayValue, (string)PropInfo.GetValue(Class));
+                    PasswordField.Width = ControlWidth;
+                    PasswordField.Height = ControlHeight;
+                    PasswordField.DisplayNameTextBlock.Width = DisplayNameWidth;
+                    PasswordField.ValuePasswordBox.Width = ValueWidth;
+                    if (FormField.Required)
+                    {
+                        PasswordField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
+                        OnViladate += PasswordField.Viladate;
+                    }
+                    if (FormField.ToolTip != string.Empty)
+                    {
+                        PasswordField.ValuePasswordBox.ToolTip = FormField.ToolTip;
+                    }
+                    PasswordField.ValuePasswordBox.PasswordChanged += (sen, e) =>
+                    {
+                        PropInfo.SetValue(Class, PasswordField.ValuePasswordBox.Password);
+
+                        OnPropertyModified?.Invoke(FieldName);
+                    };
+                    return PasswordField;
                 case "Double":
                     UserControls.Controls.DoubleField DoubleField = new UserControls.Controls.DoubleField(DisplayValue, (Double)PropInfo.GetValue(Class));
                     DoubleField.Width = ControlWidth;
