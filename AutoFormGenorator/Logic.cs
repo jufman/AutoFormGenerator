@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Controls;
-using MaterialDesignThemes.Wpf;
 using System.Windows;
 
 namespace AutoFormGenorator
@@ -17,30 +14,31 @@ namespace AutoFormGenorator
 
         public bool HasChnaged { get; set; } = false;
 
-        public UserControls.FormControl BuildFormControl<T>(T RootClass)
+        public UserControls.FormControl BuildFormControl<T>(T rootClass)
         {
-            UserControls.FormControl FormControl = new UserControls.FormControl();
+            var formControl = new UserControls.FormControl
+            {
+                Tag = rootClass
+            };
 
-            FormControl.Tag = RootClass;
-
-            ProcressRootClass(RootClass, FormControl);
+            ProcressRootClass(rootClass, formControl);
 
             OnPropertyModified += Logic_OnPropertyModified;
 
-            return FormControl;
+            return formControl;
         }
 
-        private void Logic_OnPropertyModified(string FeildName)
+        private void Logic_OnPropertyModified(string feildName)
         {
             HasChnaged = true;
         }
 
-        public void SubsceribeToPropertyModified<T>(string FieldName, Action a)
+        public void SubsceribeToPropertyModified<T>(string fieldName, Action a)
         {
-            OnPropertyModified += (string LocalFieldName) =>
+            OnPropertyModified += (string localFieldName) =>
             {
-                Type ObjectType = typeof(T);
-                if (ObjectType.FullName + "." + FieldName == LocalFieldName)
+                var objectType = typeof(T);
+                if (objectType.FullName + "." + fieldName == localFieldName)
                 {
                     a.Invoke();
                 }
@@ -49,430 +47,443 @@ namespace AutoFormGenorator
 
         public bool Compile()
         {
-            bool Valid = true;
-            foreach (Delegate d in OnViladate.GetInvocationList())
+            var valid = true;
+            foreach (var d in OnViladate.GetInvocationList())
             {
                 if (!(bool)d.DynamicInvoke(null))
                 {
-                    Valid = false;
+                    valid = false;
                 }
                
             }
-            return Valid;
+            return valid;
         }
 
-        private void ProcressRootClass(object RootClass, UserControls.FormControl FormControl)
+        private void ProcressRootClass(object rootClass, UserControls.FormControl formControl)
         {
-            ProcressClass(RootClass).ForEach(UC => {
-                UserControls.Card Parrent = new UserControls.Card();
-                Parrent.ControlGrid.Children.Add(UC);
-                FormControl.DisplayStactPanel.Children.Add(Parrent);
+            ProcressClass(rootClass).ForEach(uc => {
+                var parrent = new UserControls.Card();
+                parrent.ControlGrid.Children.Add(uc);
+                formControl.DisplayStactPanel.Children.Add(parrent);
             });
         }
 
-        private List<UserControl> ProcressClass(object RootClass)
+        private List<UserControl> ProcressClass(object rootClass)
         {
-            List<UserControl> UserControls = new List<UserControl>();
+            var userControls = new List<UserControl>();
 
-            UserControls.FieldGroupCard RootFieldGroupCard = new UserControls.FieldGroupCard();
+            var rootFieldGroupCard = new UserControls.FieldGroupCard();
 
-            List<UserControl> BuiltUserControls = BuildUserControls(RootClass, GetProprites(RootClass.GetType(), Object.Types.Prop));
+            var builtUserControls = BuildUserControls(rootClass, GetProprites(rootClass.GetType(), Object.Types.Prop));
 
            
-            BuiltUserControls.ForEach(Control =>
+            builtUserControls.ForEach(control =>
             {
-                RootFieldGroupCard.ControlsWrapPanel.Children.Add(Control);
+                rootFieldGroupCard.ControlsWrapPanel.Children.Add(control);
             });
 
-            Object.FormClass FormClass = RootClass.GetType().GetCustomAttribute<Object.FormClass>();
-            string DisplayName = RootClass.GetType().Name;
+            var formClass = rootClass.GetType().GetCustomAttribute<Object.FormClass>();
+            var displayName = rootClass.GetType().Name;
 
-            if (FormClass != null)
+            if (formClass != null)
             {
-                DisplayName = FormClass.DisplayName;
+                displayName = formClass.DisplayName;
             }
 
-            RootFieldGroupCard.DisplayNameTextBlock.Text = DisplayName;
+            rootFieldGroupCard.DisplayNameTextBlock.Text = displayName;
 
-            if (BuiltUserControls.Count != 0)
+            if (builtUserControls.Count != 0)
             {
-                UserControls.Add(RootFieldGroupCard);
+                userControls.Add(rootFieldGroupCard);
             }
 
-            UserControls.AddRange(HandleNestedSettings(RootClass));
-            UserControls.AddRange(HandleNestedList(RootClass));
+            userControls.AddRange(HandleNestedSettings(rootClass));
+            userControls.AddRange(HandleNestedList(rootClass));
 
-            return UserControls;
+            return userControls;
         }
 
-        private List<UserControl> HandleNestedList(object RootClass)
+        private IEnumerable<UserControl> HandleNestedList(object rootClass)
         {
-            Type RootClassType = RootClass.GetType();
+            var rootClassType = rootClass.GetType();
 
-            List<PropertyInfo> NestedLists = GetProprites(RootClassType, Object.Types.NestedList);
+            var nestedLists = GetProprites(rootClassType, Object.Types.NestedList);
 
-            List<UserControl> UserControls = new List<UserControl>();
+            var userControls = new List<UserControl>();
 
-            Object.FormClass FormClass = RootClassType.GetCustomAttribute<Object.FormClass>();
+            var formClass = rootClassType.GetCustomAttribute<Object.FormClass>();
 
-            NestedLists.ForEach(PropInfo =>
+            nestedLists.ForEach(propInfo =>
             {
-                Object.FormField FormField = (Object.FormField)PropInfo.GetCustomAttributes(typeof(Object.FormField), true).FirstOrDefault();
+                var formField = (Object.FormField)propInfo.GetCustomAttributes(typeof(Object.FormField), true).FirstOrDefault();
 
-                UserControls.ListControls.GroupCard RootFieldGroupCard = new UserControls.ListControls.GroupCard();
+                var rootFieldGroupCard = new UserControls.ListControls.GroupCard();
 
-                System.Collections.IList IList = (System.Collections.IList)PropInfo.GetValue(RootClass, null);
+                var list = (System.Collections.IList)propInfo.GetValue(rootClass, null);
 
-                Type ListType = PropInfo.PropertyType.GetGenericArguments()[0];
-                if (FormField.NestedListClassType != null)
+                var listType = propInfo.PropertyType.GetGenericArguments()[0];
+                if (formField.NestedListClassType != null)
                 {
-                    ListType = FormField.NestedListClassType;
+                    listType = formField.NestedListClassType;
                 }
 
-                string DisplayName = PropInfo.Name;
+                var displayName = propInfo.Name;
 
-                string FieldName = RootClassType.FullName + "." + PropInfo.Name;
+                var fieldName = rootClassType.FullName + "." + propInfo.Name;
 
-                if (FormField.DisplayName != string.Empty)
+                if (formField.DisplayName != string.Empty)
                 {
-                    DisplayName = FormField.DisplayName;
+                    displayName = formField.DisplayName;
                 }
 
-                RootFieldGroupCard.AddItemIcon.MouseLeftButtonUp += (s, e) =>
+                rootFieldGroupCard.AddItemIcon.MouseLeftButtonUp += (s, e) =>
                 {
-                    object NestedItem = Activator.CreateInstance(ListType);
+                    var nestedItem = Activator.CreateInstance(listType);
 
-                    IList.Add(NestedItem);
+                    list.Add(nestedItem);
 
-                    OnPropertyModified?.Invoke(FieldName);
+                    OnPropertyModified?.Invoke(fieldName);
 
-                    RootFieldGroupCard.ControlsWrapPanel.Children.Add(AddNewListItem(NestedItem, IList, RootFieldGroupCard, FieldName));
+                    rootFieldGroupCard.ControlsWrapPanel.Children.Add(AddNewListItem(nestedItem, list, rootFieldGroupCard, fieldName));
                 };
 
-                RootFieldGroupCard.DisplayNameTextBlock.Text = DisplayName;
+                rootFieldGroupCard.DisplayNameTextBlock.Text = displayName;
  
-                foreach (object item in IList)
+                foreach (var item in list)
                 {
-                    RootFieldGroupCard.ControlsWrapPanel.Children.Add(AddNewListItem(item, IList, RootFieldGroupCard, FieldName));
+                    rootFieldGroupCard.ControlsWrapPanel.Children.Add(AddNewListItem(item, list, rootFieldGroupCard, fieldName));
                 }
-                UserControls.Add(RootFieldGroupCard);
+                userControls.Add(rootFieldGroupCard);
             });
 
-            return UserControls;
+            return userControls;
         }
 
-        private UserControls.ListControls.Item AddNewListItem(object item, System.Collections.IList IList, UserControls.ListControls.GroupCard RootFieldGroupCard, string FeildName)
+        private UserControls.ListControls.Item AddNewListItem(object item, System.Collections.IList list, UserControls.ListControls.GroupCard rootFieldGroupCard, string feildName)
         {
-            UserControls.ListControls.Item ListControlItem = new UserControls.ListControls.Item();
+            var listControlItem = new UserControls.ListControls.Item();
 
-            ProcressClass(item).ForEach(Control =>
+            ProcressClass(item).ForEach(control =>
             {
-                ListControlItem.ControlWrapPanel.Children.Add(Control);
+                listControlItem.ControlWrapPanel.Children.Add(control);
             });
 
-            ListControlItem.DeleteItemIcon.MouseLeftButtonUp += (s, e) =>
+            listControlItem.DeleteItemIcon.MouseLeftButtonUp += (s, e) =>
             {
                 if (MessageBox.Show("Are you sure you want to remove this?", "Remove Item?", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
                 {
-                    RootFieldGroupCard.ControlsWrapPanel.Children.Remove(ListControlItem);
-                    IList.Remove(item);
-                    OnPropertyModified?.Invoke(FeildName);
+                    rootFieldGroupCard.ControlsWrapPanel.Children.Remove(listControlItem);
+                    list.Remove(item);
+                    OnPropertyModified?.Invoke(feildName);
                 }
             };
 
-            return ListControlItem;
+            return listControlItem;
         }
 
-        private List<UserControl> HandleNestedSettings(object RootClass)
+        private List<UserControl> HandleNestedSettings(object rootClass)
         {
-            List<PropertyInfo> NestedSettings = GetProprites(RootClass.GetType(), Object.Types.NestedSettings);
+            var nestedSettings = GetProprites(rootClass.GetType(), Object.Types.NestedSettings);
 
-            List<UserControl> Controls = new List<UserControl>();
+            var controls = new List<UserControl>();
 
-            foreach (PropertyInfo PropInfo in NestedSettings)
+            foreach (var propInfo in nestedSettings)
             {
-                object NestedSettingsClass = PropInfo.GetValue(RootClass);
+                var nestedSettingsClass = propInfo.GetValue(rootClass);
 
-                if (NestedSettingsClass == null)
+                if (nestedSettingsClass == null)
                 {
-                    Object.FormField FormField = (Object.FormField)PropInfo.GetCustomAttributes(typeof(Object.FormField), true).FirstOrDefault();
+                    var formField = (Object.FormField)propInfo.GetCustomAttributes(typeof(Object.FormField), true).FirstOrDefault();
 
-                    Type ListType = PropInfo.PropertyType;
-                    if (FormField.NestedClassType != null)
+                    var listType = propInfo.PropertyType;
+                    if (formField.NestedClassType != null)
                     {
-                        ListType = FormField.NestedClassType;
+                        listType = formField.NestedClassType;
                     }
                     
-                    NestedSettingsClass = Activator.CreateInstance(ListType);
-                    PropInfo.SetValue(RootClass, NestedSettingsClass);
+                    nestedSettingsClass = Activator.CreateInstance(listType);
+                    propInfo.SetValue(rootClass, nestedSettingsClass);
                 }
 
-                Controls.AddRange(ProcressClass(NestedSettingsClass));
+                controls.AddRange(ProcressClass(nestedSettingsClass));
             }
 
-            return Controls;
+            return controls;
         }
 
         private List<UserControl> BuildUserControls(object Class, List<PropertyInfo> props)
         {
-            List<UserControl> UserControls = new List<UserControl>();
+            var userControls = new List<UserControl>();
 
-            double DisplayNameWidth = 0;
-            double ValueWidth = 100;
-            props.ForEach(PropInfo =>
+            double displayNameWidth = 0;
+            double valueWidth = 100;
+            props.ForEach(propInfo =>
             {
-                Object.FormField FormField = (Object.FormField)PropInfo.GetCustomAttributes(typeof(Object.FormField), true).FirstOrDefault();
+                var formField = (Object.FormField)propInfo.GetCustomAttributes(typeof(Object.FormField), true).FirstOrDefault();
 
-                string DisplayValue = PropInfo.Name;
+                var displayValue = propInfo.Name;
 
-                if (FormField.DisplayName != string.Empty)
+                if (formField.DisplayName != string.Empty)
                 {
-                    DisplayValue = FormField.DisplayName;
+                    displayValue = formField.DisplayName;
                 }
                 
-                if ((DisplayValue.Length * 10) > DisplayNameWidth)
+                if ((displayValue.Length * 10) > displayNameWidth)
                 {
-                    DisplayNameWidth = (DisplayValue.Length * 10);
+                    displayNameWidth = (displayValue.Length * 10);
                 }
             });
 
             if (Attribute.IsDefined(Class.GetType(), typeof(Object.FormClass)))
             {
-                Object.FormClass FormClass = Class.GetType().GetCustomAttribute<Object.FormClass>();
+                var formClass = Class.GetType().GetCustomAttribute<Object.FormClass>();
 
-                if (FormClass.FormValueWidth != -1)
+                if (formClass.FormValueWidth != -1)
                 {
-                    ValueWidth = FormClass.FormValueWidth;
+                    valueWidth = formClass.FormValueWidth;
                 }
             }
             
-            props.ForEach(PropInfo =>
+            props.ForEach(propInfo =>
             {
-                UserControl Control = BuildControl(PropInfo, Class, DisplayNameWidth, ValueWidth);
+                var control = BuildControl(propInfo, Class, displayNameWidth, valueWidth);
 
-                if (Control != null)
+                if (control != null)
                 {
-                    UserControls.Add(Control);
+                    userControls.Add(control);
                 }
             });
 
-            return UserControls;
+            return userControls;
         }
             
-        private UserControl BuildControl(PropertyInfo PropInfo, object Class, double DisplayNameWidth = 90, double ValueWidth = 100)
+        private UserControl BuildControl(PropertyInfo propInfo, object Class, double displayNameWidth = 90, double valueWidth = 100)
         {
-            double ControlWidth = (DisplayNameWidth + ValueWidth) + 50;
-            double ControlHeight = 40;
+            var controlWidth = (displayNameWidth + valueWidth) + 50;
+            double controlHeight = 40;
 
-            Object.FormField FormField = (Object.FormField)PropInfo.GetCustomAttributes(typeof(Object.FormField), true).FirstOrDefault();
+            var formField = (Object.FormField)propInfo.GetCustomAttributes(typeof(Object.FormField), true).FirstOrDefault();
 
-            string DisplayValue = PropInfo.Name;
+            var displayValue = propInfo.Name;
 
-            if (FormField.DisplayName != string.Empty)
+            if (formField.DisplayName != string.Empty)
             {
-                DisplayValue = FormField.DisplayName;
+                displayValue = formField.DisplayName;
             }
 
-            if (FormField.Required)
+            if (formField.Required)
             {
-                DisplayValue += "*";
+                displayValue += "*";
             }
 
-            string PropertyType = PropInfo.PropertyType.Name;
+            var propertyType = propInfo.PropertyType.Name;
 
-            if (FormField.ObjectTypeName != string.Empty)
+            if (formField.ObjectTypeName != string.Empty)
             {
-                PropertyType = FormField.ObjectTypeName;
+                propertyType = formField.ObjectTypeName;
             }
 
-            string FieldName = Class.GetType().FullName + "." + PropInfo.Name;
+            var fieldName = Class.GetType().FullName + "." + propInfo.Name;
 
             //var obj = Activator.CreateInstance(Class.GetType());
             //object jh = PropInfo.GetValue(obj, new object[] { });
 
-            switch (PropertyType)
+            switch (propertyType)
             {
                 case "String":
-                    UserControls.Controls.StringField StringField = new UserControls.Controls.StringField(DisplayValue, (string)PropInfo.GetValue(Class));
-                    StringField.Width = ControlWidth;
-                    StringField.Height = ControlHeight;
-                    StringField.DisplayNameTextBlock.Width = DisplayNameWidth;
-                    StringField.ValueTextBox.Width = ValueWidth;
-                    if (FormField.Required)
+                    var stringField = new UserControls.Controls.StringField(displayValue, (string)propInfo.GetValue(Class))
                     {
-                        StringField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
-                        OnViladate += StringField.Viladate;
-                    }
-                    if (FormField.ToolTip != string.Empty)
-                    {
-                        StringField.ValueTextBox.ToolTip = FormField.ToolTip;
-                    }
-                    StringField.ValueTextBox.TextChanged += (sen, e) =>
-                    {
-                        PropInfo.SetValue(Class, StringField.ValueTextBox.Text);
-
-                        OnPropertyModified?.Invoke(FieldName);
+                        Width = controlWidth,
+                        Height = controlHeight
                     };
-                    return StringField;
+                    stringField.DisplayNameTextBlock.Width = displayNameWidth;
+                    stringField.ValueTextBox.Width = valueWidth;
+                    if (formField.Required)
+                    {
+                        stringField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
+                        OnViladate += stringField.Viladate;
+                    }
+                    if (formField.ToolTip != string.Empty)
+                    {
+                        stringField.ValueTextBox.ToolTip = formField.ToolTip;
+                    }
+                    stringField.ValueTextBox.TextChanged += (sen, e) =>
+                    {
+                        propInfo.SetValue(Class, stringField.ValueTextBox.Text);
+
+                        OnPropertyModified?.Invoke(fieldName);
+                    };
+                    return stringField;
                 case "Password":
-                    UserControls.Controls.PasswordField PasswordField = new UserControls.Controls.PasswordField(DisplayValue, (string)PropInfo.GetValue(Class));
-                    PasswordField.Width = ControlWidth;
-                    PasswordField.Height = ControlHeight;
-                    PasswordField.DisplayNameTextBlock.Width = DisplayNameWidth;
-                    PasswordField.ValuePasswordBox.Width = ValueWidth;
-                    if (FormField.Required)
+                    var passwordField = new UserControls.Controls.PasswordField(displayValue, (string)propInfo.GetValue(Class))
                     {
-                        PasswordField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
-                        OnViladate += PasswordField.Viladate;
+                        Width = controlWidth,
+                        Height = controlHeight
+                    };
+                    passwordField.DisplayNameTextBlock.Width = displayNameWidth;
+                    passwordField.ValuePasswordBox.Width = valueWidth;
+                    if (formField.Required)
+                    {
+                        passwordField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
+                        OnViladate += passwordField.Viladate;
                     }
-                    if (FormField.ToolTip != string.Empty)
+                    if (formField.ToolTip != string.Empty)
                     {
-                        PasswordField.ValuePasswordBox.ToolTip = FormField.ToolTip;
+                        passwordField.ValuePasswordBox.ToolTip = formField.ToolTip;
                     }
-                    PasswordField.ValuePasswordBox.PasswordChanged += (sen, e) =>
+                    passwordField.ValuePasswordBox.PasswordChanged += (sen, e) =>
                     {
-                        PropInfo.SetValue(Class, PasswordField.ValuePasswordBox.Password);
+                        propInfo.SetValue(Class, passwordField.ValuePasswordBox.Password);
 
-                        OnPropertyModified?.Invoke(FieldName);
+                        OnPropertyModified?.Invoke(fieldName);
                     };
-                    return PasswordField;
+                    return passwordField;
                 case "Double":
-                    UserControls.Controls.DoubleField DoubleField = new UserControls.Controls.DoubleField(DisplayValue, (Double)PropInfo.GetValue(Class));
-                    DoubleField.Width = ControlWidth;
-                    DoubleField.Height = ControlHeight;
-                    DoubleField.DisplayNameTextBlock.Width = DisplayNameWidth;
-                    DoubleField.ValueTextBox.Width = ValueWidth;
-                    if (FormField.Required)
+                    var doubleField = new UserControls.Controls.DoubleField(displayValue, (Double)propInfo.GetValue(Class))
                     {
-                        DoubleField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
-                        OnViladate += DoubleField.Viladate;
+                        Width = controlWidth,
+                        Height = controlHeight
+                    };
+                    doubleField.DisplayNameTextBlock.Width = displayNameWidth;
+                    doubleField.ValueTextBox.Width = valueWidth;
+                    if (formField.Required)
+                    {
+                        doubleField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
+                        OnViladate += doubleField.Viladate;
                     }
-                    if (FormField.ToolTip != string.Empty)
+                    if (formField.ToolTip != string.Empty)
                     {
-                        DoubleField.ValueTextBox.ToolTip = FormField.ToolTip;
+                        doubleField.ValueTextBox.ToolTip = formField.ToolTip;
                     }
-                    DoubleField.ValueTextBox.TextChanged += (sen, e) =>
+                    doubleField.ValueTextBox.TextChanged += (sen, e) =>
                     {
-                        double DoubleValue = 0;
-                        if (double.TryParse(DoubleField.ValueTextBox.Text, out DoubleValue))
+                        if (double.TryParse(doubleField.ValueTextBox.Text, out var doubleValue))
                         {
-                            PropInfo.SetValue(Class, DoubleValue);
-                            OnPropertyModified?.Invoke(FieldName);
+                            propInfo.SetValue(Class, doubleValue);
+                            OnPropertyModified?.Invoke(fieldName);
                         }
                     };
-                    return DoubleField;
+                    return doubleField;
                 case "Int32":
-                    UserControls.Controls.IntField IntField = new UserControls.Controls.IntField(DisplayValue, (int)PropInfo.GetValue(Class));
-                    IntField.Width = ControlWidth;
-                    IntField.Height = ControlHeight;
-                    IntField.DisplayNameTextBlock.Width = DisplayNameWidth;
-                    IntField.ValueTextBox.Width = ValueWidth;
-                    if (FormField.Required)
+                    var intField = new UserControls.Controls.IntField(displayValue, (int)propInfo.GetValue(Class))
                     {
-                        IntField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
-                        OnViladate += IntField.Viladate;
+                        Width = controlWidth,
+                        Height = controlHeight
+                    };
+                    intField.DisplayNameTextBlock.Width = displayNameWidth;
+                    intField.ValueTextBox.Width = valueWidth;
+                    if (formField.Required)
+                    {
+                        intField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
+                        OnViladate += intField.Viladate;
                     }
-                    if (FormField.ToolTip != string.Empty)
+                    if (formField.ToolTip != string.Empty)
                     {
-                        IntField.ValueTextBox.ToolTip = FormField.ToolTip;
+                        intField.ValueTextBox.ToolTip = formField.ToolTip;
                     }
-                    IntField.ValueTextBox.TextChanged += (sen, e) =>
+                    intField.ValueTextBox.TextChanged += (sen, e) =>
                     {
-                        int IntValue = 0;
-                        if (int.TryParse(IntField.ValueTextBox.Text, out IntValue))
+                        if (int.TryParse(intField.ValueTextBox.Text, out var intValue))
                         {
-                            PropInfo.SetValue(Class, IntValue);
-                            OnPropertyModified?.Invoke(FieldName);
+                            propInfo.SetValue(Class, intValue);
+                            OnPropertyModified?.Invoke(fieldName);
                         }
                     };
-                    return IntField;
+                    return intField;
                 case "Single":
-                    UserControls.Controls.FloatField FloatField = new UserControls.Controls.FloatField(DisplayValue, (float)PropInfo.GetValue(Class));
-                    FloatField.Width = ControlWidth;
-                    FloatField.Height = ControlHeight;
-                    FloatField.DisplayNameTextBlock.Width = DisplayNameWidth;
-                    FloatField.ValueTextBox.Width = ValueWidth;
-                    if (FormField.Required)
+                    var floatField = new UserControls.Controls.FloatField(displayValue, (float)propInfo.GetValue(Class))
                     {
-                        FloatField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
-                        OnViladate += FloatField.Viladate;
+                        Width = controlWidth,
+                        Height = controlHeight
+                    };
+                    floatField.DisplayNameTextBlock.Width = displayNameWidth;
+                    floatField.ValueTextBox.Width = valueWidth;
+                    if (formField.Required)
+                    {
+                        floatField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
+                        OnViladate += floatField.Viladate;
                     }
-                    if (FormField.ToolTip != string.Empty)
+                    if (formField.ToolTip != string.Empty)
                     {
-                        FloatField.ValueTextBox.ToolTip = FormField.ToolTip;
+                        floatField.ValueTextBox.ToolTip = formField.ToolTip;
                     }
-                    FloatField.ValueTextBox.TextChanged += (sen, e) =>
+                    floatField.ValueTextBox.TextChanged += (sen, e) =>
                     {
-                        float FloatValue = 0;
-                        if (float.TryParse(FloatField.ValueTextBox.Text, out FloatValue))
+                        if (float.TryParse(floatField.ValueTextBox.Text, out var floatValue))
                         {
-                            PropInfo.SetValue(Class, FloatValue);
-                            OnPropertyModified?.Invoke(FieldName);
+                            propInfo.SetValue(Class, floatValue);
+                            OnPropertyModified?.Invoke(fieldName);
                         }
                     };
-                    return FloatField;
+                    return floatField;
                 case "Boolean":
-                    UserControls.Controls.BooleanField BooleanField = new UserControls.Controls.BooleanField(DisplayValue, (bool)PropInfo.GetValue(Class));
-                    BooleanField.Width = ControlWidth;
-                    BooleanField.Height = ControlHeight;
-                    BooleanField.DisplayNameTextBlock.Width = DisplayNameWidth;
-                    if (FormField.Required)
+                    var booleanField = new UserControls.Controls.BooleanField(displayValue, (bool)propInfo.GetValue(Class))
                     {
-                        BooleanField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
-                        OnViladate += BooleanField.Viladate;
-                    }
-                    if (FormField.ToolTip != string.Empty)
-                    {
-                        BooleanField.ValueCheckBox.ToolTip = FormField.ToolTip;
-                    }
-                    BooleanField.ValueCheckBox.Checked += (sen, e) =>
-                    {
-                        PropInfo.SetValue(Class, BooleanField.ValueCheckBox.IsChecked);
-                        OnPropertyModified?.Invoke(FieldName);
+                        Width = controlWidth,
+                        Height = controlHeight
                     };
-                    BooleanField.ValueCheckBox.Unchecked += (sen, e) =>
+                    booleanField.DisplayNameTextBlock.Width = displayNameWidth;
+                    if (formField.Required)
                     {
-                        PropInfo.SetValue(Class, BooleanField.ValueCheckBox.IsChecked);
-                        OnPropertyModified?.Invoke(FieldName);
+                        booleanField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
+                        OnViladate += booleanField.Viladate;
+                    }
+                    if (formField.ToolTip != string.Empty)
+                    {
+                        booleanField.ValueCheckBox.ToolTip = formField.ToolTip;
+                    }
+                    booleanField.ValueCheckBox.Checked += (sen, e) =>
+                    {
+                        propInfo.SetValue(Class, booleanField.ValueCheckBox.IsChecked);
+                        OnPropertyModified?.Invoke(fieldName);
                     };
-                    return BooleanField;
+                    booleanField.ValueCheckBox.Unchecked += (sen, e) =>
+                    {
+                        propInfo.SetValue(Class, booleanField.ValueCheckBox.IsChecked);
+                        OnPropertyModified?.Invoke(fieldName);
+                    };
+                    return booleanField;
                 case "ColourPicker":
-                    UserControls.Controls.ColourPickerField ColourPickerField = new UserControls.Controls.ColourPickerField(DisplayValue, (string)PropInfo.GetValue(Class));
-                    ColourPickerField.Width = ControlWidth;
-                    ColourPickerField.Height = ControlHeight;
-                    ColourPickerField.DisplayNameTextBlock.Width = DisplayNameWidth;
-                    if (FormField.Required)
+                    var colourPickerField = new UserControls.Controls.ColourPickerField(displayValue, (string)propInfo.GetValue(Class))
                     {
-                        ColourPickerField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
-                        OnViladate += ColourPickerField.Viladate;
-                    }
-                    if (FormField.ToolTip != string.Empty)
-                    {
-                        ColourPickerField.ValueColourPicker.ToolTip = FormField.ToolTip;
-                    }
-                    ColourPickerField.ValueColourPicker.SelectedColorChanged += (sen, e) =>
-                    {
-                        PropInfo.SetValue(Class, ColourPickerField.ValueColourPicker.SelectedColor.ToString());
-                        OnPropertyModified?.Invoke(FieldName);
+                        Width = controlWidth,
+                        Height = controlHeight
                     };
-                    return ColourPickerField;
+                    colourPickerField.DisplayNameTextBlock.Width = displayNameWidth;
+                    if (formField.Required)
+                    {
+                        colourPickerField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
+                        OnViladate += colourPickerField.Viladate;
+                    }
+                    if (formField.ToolTip != string.Empty)
+                    {
+                        colourPickerField.ValueColourPicker.ToolTip = formField.ToolTip;
+                    }
+                    colourPickerField.ValueColourPicker.SelectedColorChanged += (sen, e) =>
+                    {
+                        propInfo.SetValue(Class, colourPickerField.ValueColourPicker.SelectedColor.ToString());
+                        OnPropertyModified?.Invoke(fieldName);
+                    };
+                    return colourPickerField;
                 case "ObjectDropdown":
-                    UserControls.Controls.DropdownField DropdownField = new UserControls.Controls.DropdownField(DisplayValue, BuildDropdownItems(FormField.DropDownClass), (string)PropInfo.GetValue(Class));
-                    DropdownField.Width = ControlWidth;
-                    DropdownField.Height = ControlHeight;
-                    DropdownField.DisplayNameTextBlock.Width = DisplayNameWidth;
-                    DropdownField.SelectComboBox.Width = ValueWidth;
-                    if (FormField.ToolTip != string.Empty)
+                    var dropdownField = new UserControls.Controls.DropdownField(displayValue, BuildDropdownItems(formField.DropDownClass), (string)propInfo.GetValue(Class))
                     {
-                        DropdownField.SelectComboBox.ToolTip = FormField.ToolTip;
-                    }
-                    DropdownField.SelectComboBox.SelectionChanged += (sen, e) =>
-                    {
-                        ComboBoxItem SelectedItem = (ComboBoxItem) DropdownField.SelectComboBox.SelectedItem;
-                        PropInfo.SetValue(Class, SelectedItem.Tag.ToString());
-                        OnPropertyModified?.Invoke(FieldName);
+                        Width = controlWidth,
+                        Height = controlHeight
                     };
-                    return DropdownField;
+                    dropdownField.DisplayNameTextBlock.Width = displayNameWidth;
+                    dropdownField.SelectComboBox.Width = valueWidth;
+                    if (formField.ToolTip != string.Empty)
+                    {
+                        dropdownField.SelectComboBox.ToolTip = formField.ToolTip;
+                    }
+                    dropdownField.SelectComboBox.SelectionChanged += (sen, e) =>
+                    {
+                        var selectedItem = (ComboBoxItem) dropdownField.SelectComboBox.SelectedItem;
+                        propInfo.SetValue(Class, selectedItem.Tag.ToString());
+                        OnPropertyModified?.Invoke(fieldName);
+                    };
+                    return dropdownField;
             }
 
             return null;
@@ -480,52 +491,44 @@ namespace AutoFormGenorator
 
         private List<UserControls.Controls.DropdownField.DropdownItem> BuildDropdownItems(Type Class)
         {
-            object DropClass = Activator.CreateInstance(Class);
+            var dropClass = Activator.CreateInstance(Class);
 
-            List<UserControls.Controls.DropdownField.DropdownItem> DropdownItems = new List<UserControls.Controls.DropdownField.DropdownItem>();
+            var dropdownItems = new List<UserControls.Controls.DropdownField.DropdownItem>();
 
-            List<PropertyInfo> RawPropertyInfos = new List<PropertyInfo>(Class.GetProperties().Where(A => A.GetCustomAttributes<Object.FormDropdownItem>().Count() != 0));
+            var rawPropertyInfos = new List<PropertyInfo>(Class.GetProperties().Where(a => a.GetCustomAttributes<Object.FormDropdownItem>().Count() != 0));
 
-            RawPropertyInfos.ForEach(Prop =>
+            rawPropertyInfos.ForEach(prop =>
             {
-                Object.FormDropdownItem FormDropdownItem = (Object.FormDropdownItem)Prop.GetCustomAttribute< Object.FormDropdownItem>();
+                var formDropdownItem = (Object.FormDropdownItem)prop.GetCustomAttribute< Object.FormDropdownItem>();
 
-                string DisplayName = Prop.Name;
-                string Value;
+                var displayName = prop.Name;
 
-                if (FormDropdownItem.DisplayValue != string.Empty)
+                if (formDropdownItem.DisplayValue != string.Empty)
                 {
-                    DisplayName = FormDropdownItem.DisplayValue;
+                    displayName = formDropdownItem.DisplayValue;
                 }
 
-                if (FormDropdownItem.Value != string.Empty)
-                {
-                    Value = FormDropdownItem.Value;
-                }
-                else
-                {
-                    Value = Prop.GetValue(DropClass).ToString();
-                }
+                var value = formDropdownItem.Value != string.Empty ? formDropdownItem.Value : prop.GetValue(dropClass).ToString();
 
-                DropdownItems.Add(new UserControls.Controls.DropdownField.DropdownItem()
+                dropdownItems.Add(new UserControls.Controls.DropdownField.DropdownItem()
                 {
-                    Name = DisplayName,
-                    Value = Value
+                    Name = displayName,
+                    Value = value
                 });
             });
 
-            return DropdownItems;
+            return dropdownItems;
         }
 
-        private List<PropertyInfo> GetProprites(Type BaseType, Object.Types Type)
+        private List<PropertyInfo> GetProprites(Type baseType, Object.Types type)
         {
-            List<PropertyInfo> Props = new List<PropertyInfo>();
+            var props = new List<PropertyInfo>();
 
-            List<PropertyInfo> RawPropertyInfos = new List<PropertyInfo>(BaseType.GetProperties());
+            var rawPropertyInfos = new List<PropertyInfo>(baseType.GetProperties());
 
-            List<PropertyInfo> PropertyInfo = new List<PropertyInfo>(RawPropertyInfos.Where(A => A.GetCustomAttributes(typeof(Object.FormField), true).Where(B => ((Object.FormField)B).Type == Type).Any()));
+            var propertyInfo = new List<PropertyInfo>(rawPropertyInfos.Where(a => a.GetCustomAttributes(typeof(Object.FormField), true).Where(b => ((Object.FormField)b).Type == type).Any()));
 
-            return PropertyInfo;
+            return propertyInfo;
         }
 
     }
