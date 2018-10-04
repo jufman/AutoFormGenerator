@@ -13,6 +13,7 @@ namespace AutoFormGenorator
         public event Events.PropertyModified OnPropertyModified;
 
         public bool HasChnaged { get; set; } = false;
+		
 
         public UserControls.FormControl BuildFormControl<T>(T rootClass)
         {
