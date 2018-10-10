@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
-    <id>AutoFormGenorator</id>
+    <id>AutoFormGenorator.Jnet.Systems</id>
     <version>$version$</version>
     <authors>Justin Campbell</authors>
     <owners>Justin Campbell</owners>
