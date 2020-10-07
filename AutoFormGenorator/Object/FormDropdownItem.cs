@@ -6,11 +6,15 @@ using System.Threading.Tasks;
 
 namespace AutoFormGenorator.Object
 {
-    public class FormDropdownItem : Attribute
+    public class FormDropdownItem : Attribute 
     {
         public string DisplayValue { get; set; } = string.Empty;
 
-        public string Value { get; set; } = string.Empty;
+        public object Value { get; set; } = string.Empty;
 
+        public override string ToString()
+        {
+            return DisplayValue;
+        }
     }
 }

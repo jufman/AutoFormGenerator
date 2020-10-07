@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace AutoFormGenorator.Events
 {
-    public delegate void PropertyModified(string FeildName);
+    public delegate void PropertyModified(string FieldName, object Value);
 }

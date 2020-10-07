@@ -12,7 +12,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock x:Name="DisplayNameTextBlock" Foreground="#757575" TextAlignment="Left" FontSize="20" FontWeight="Bold" HorizontalAlignment="Stretch" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Grid.Row="0"  Height="auto" Width="Auto"/>
+        <TextBlock x:Name="DisplayNameTextBlock" Foreground="#FFFFFF" TextAlignment="Left" FontSize="20" FontWeight="Bold" HorizontalAlignment="Stretch" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Grid.Row="0"  Height="auto" Width="Auto"/>
 
         <Separator Grid.Row="1" Grid.ColumnSpan="3" VerticalAlignment="Top"/>
 

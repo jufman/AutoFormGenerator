@@ -11,16 +11,15 @@
         TextElement.FontSize="13"
         TextOptions.TextFormattingMode="Ideal" 
         TextOptions.TextRenderingMode="Auto"        
-        Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{DynamicResource MaterialDesignFont}"
-             d:DesignHeight="300" d:DesignWidth="300" MinWidth="500">
+             FontFamily="{DynamicResource MaterialDesignFont}"
+             d:DesignHeight="300" d:DesignWidth="300" MinWidth="500" Background="#303030">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock x:Name="DisplayNameTextBlock" Foreground="#757575" TextAlignment="Left" FontSize="20" FontWeight="Bold" HorizontalAlignment="Stretch" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Grid.Row="0"  Height="auto" Width="Auto"/>
+        <TextBlock x:Name="DisplayNameTextBlock" Foreground="#FFFFFF" TextAlignment="Left" FontSize="20" FontWeight="Bold" HorizontalAlignment="Stretch" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Grid.Row="0"  Height="auto" Width="Auto"/>
         <materialDesign:PackIcon Kind="Plus" Height="20" Width="20" VerticalAlignment="Center" HorizontalAlignment="Right" Cursor="Hand" Margin="0,0,10,0" Background="Transparent" MouseLeftButtonUp="AddItemIcon_MouseLeftButtonUp" x:Name="AddItemIcon"/>
         <Separator Grid.Row="1" Grid.ColumnSpan="3" VerticalAlignment="Top"/>
 
