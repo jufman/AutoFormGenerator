@@ -187,7 +187,9 @@ namespace AutoFormGenorator
 
             listControlItem.DeleteItemIcon.MouseLeftButtonUp += (s, e) =>
             {
-                if (MessageBox.Show("Are you sure you want to remove this?", "Remove Item?", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                var deleteItemMessageBox = new Windows.AFG_MessageBox("Remove Item?", "Are you sure you want to remove this?");
+                deleteItemMessageBox.ShowDialog();
+                if (deleteItemMessageBox.MessageBoxResult == MessageBoxResult.Yes)
                 {
                     rootFieldGroupCard.ControlsWrapPanel.Children.Remove(listControlItem);
                     list.Remove(item);
