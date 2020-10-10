@@ -7,8 +7,8 @@
     <ProjectGuid>{B40C0A51-9A00-45DD-B752-F946EC4721AC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AutoFormGenorator</RootNamespace>
-    <AssemblyName>AutoFormGenorator</AssemblyName>
+    <RootNamespace>AutoFormGenerator</RootNamespace>
+    <AssemblyName>AutoFormGenerator</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Authors>Justin Campbell</Authors>

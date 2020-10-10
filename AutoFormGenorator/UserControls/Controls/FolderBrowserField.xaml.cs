@@ -1,22 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
+﻿using System.IO;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Cursors = System.Windows.Input.Cursors;
 
-namespace AutoFormGenorator.UserControls.Controls
+namespace AutoFormGenerator.UserControls.Controls
 {
     /// <summary>
     /// Interaction logic for FolderBrowserField.xaml
@@ -34,7 +22,7 @@ namespace AutoFormGenorator.UserControls.Controls
             ValueTextBox.ToolTip = "Double Click for Folder Browser";
         }
 
-        public bool Viladate()
+        public bool Validate()
         {
             bool Valid = true;
             if (ValueTextBox.Text.Length == 0)

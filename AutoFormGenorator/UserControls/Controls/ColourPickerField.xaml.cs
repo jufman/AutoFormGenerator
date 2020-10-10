@@ -1,19 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
-namespace AutoFormGenorator.UserControls.Controls
+namespace AutoFormGenerator.UserControls.Controls
 {
     /// <summary>
     /// Interaction logic for ColourPickerField.xaml
@@ -35,7 +24,7 @@ namespace AutoFormGenorator.UserControls.Controls
             }
         }
 
-        public bool Viladate()
+        public bool Validate()
         {
 
             return true;

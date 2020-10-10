@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AutoFormGenorator.Events
+﻿namespace AutoFormGenerator.Events
 {
     public delegate void PropertyModified(string FieldName, object Value);
 }

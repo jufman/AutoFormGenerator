@@ -1,18 +1,11 @@
-﻿<UserControl x:Class="AutoFormGenorator.UserControls.ListControls.Item"
+﻿<UserControl x:Class="AutoFormGenerator.UserControls.ListControls.Item"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:AutoFormGenorator.UserControls.ListControls"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d" 
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-        TextElement.FontWeight="Regular"
-        TextElement.FontSize="13"
-        TextOptions.TextFormattingMode="Ideal" 
-        TextOptions.TextRenderingMode="Auto"        
-        FontFamily="{DynamicResource MaterialDesignFont}"
-        HorizontalAlignment="Stretch" MinWidth="300">
+             HorizontalAlignment="Stretch" MinWidth="300">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -22,7 +15,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="5"/>
         </Grid.RowDefinitions>
-        <materialDesign:PackIcon Kind="Delete" Height="20" Width="20" VerticalAlignment="Top" HorizontalAlignment="Right" Cursor="Hand" Margin="0,5,10,0" Grid.Column="1" Background="Transparent" x:Name="DeleteItemIcon" />
+        <materialDesign:PackIcon Kind="Delete" Height="20" Width="20" VerticalAlignment="Top" HorizontalAlignment="Right" Cursor="Hand" Margin="0,5,10,0" Grid.Column="1" Background="Transparent" x:Name="DeleteItemIcon" Foreground="#FFFFFF"  />
 
         <StackPanel x:Name="ControlWrapPanel" Grid.Row="0" Grid.Column="0" Margin="10,0,0,0">
             

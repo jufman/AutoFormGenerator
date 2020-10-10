@@ -1,27 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Windows.Controls;
 using System.Windows;
-using AutoFormGenorator.Object;
-using AutoFormGenorator.UserControls.Controls;
+using System.Windows.Controls;
+using AutoFormGenerator.Object;
+using AutoFormGenerator.UserControls.Controls;
 
-namespace AutoFormGenorator
+namespace AutoFormGenerator
 {
     public class Logic
     {
-        private event Events.Viladate OnViladate;
+        private event Events.Viladate OnValidate;
         public event Events.PropertyModified OnPropertyModified;
 
         private delegate void AddSpecialDropdownItems(string FieldName, List<FormDropdownItem> DropdownItems);
         private event AddSpecialDropdownItems OnAddSpecialDropdownItems;
 
-        public bool HasChnaged { get; set; } = false;
-		
+        public bool HasChanged { get; set; } = false;
 
         public UserControls.FormControl BuildFormControl<T>(T Class)
         {
+            Stopwatch sw = Stopwatch.StartNew();
             object RootClass = Class;
             if (Class is System.Collections.IList)
             {
@@ -37,19 +38,21 @@ namespace AutoFormGenorator
                 Tag = RootClass
             };
 
-            ProcressRootClass(RootClass, formControl);
+            ProcessRootClass(RootClass, formControl);
 
             OnPropertyModified += Logic_OnPropertyModified;
+            sw.Stop();
 
+            Console.WriteLine("typeof(Test): {0}ms", sw.ElapsedMilliseconds);
             return formControl;
         }
 
-        private void Logic_OnPropertyModified(string feildName, object Value)
+        private void Logic_OnPropertyModified(string fieldName, object Value)
         {
-            HasChnaged = true;
+            HasChanged = true;
         }
 
-        public void SubsceribeToPropertyModified<T>(string fieldName, Action a)
+        public void SubscribeToPropertyModified<T>(string fieldName, Action a)
         {
             OnPropertyModified += (localFieldName, value) =>
             {
@@ -64,44 +67,43 @@ namespace AutoFormGenorator
         public bool Compile()
         {
             var valid = true;
-            foreach (var d in OnViladate.GetInvocationList())
+            if (OnValidate == null) return valid;
+            foreach (var d in OnValidate.GetInvocationList())
             {
-                if (!(bool)d.DynamicInvoke(null))
+                if (!(bool) d.DynamicInvoke(null))
                 {
                     valid = false;
                 }
-               
             }
+
             return valid;
         }
 
-        private void ProcressRootClass(object rootClass, UserControls.FormControl formControl)
+        private void ProcessRootClass(object rootClass, UserControls.FormControl formControl)
         {
-            ProcressClass(rootClass).ForEach(uc => {
-                var parrent = new UserControls.Card();
-                parrent.ControlGrid.Children.Add(uc);
-                formControl.DisplayStactPanel.Children.Add(parrent);
+            ProcessClass(rootClass).ForEach(uc => {
+                var parent = new UserControls.Card();
+                parent.ControlGrid.Children.Add(uc);
+                formControl.DisplayStactPanel.Children.Add(parent);
             });
         }
 
-        private List<UserControl> ProcressClass(object rootClass)
+        private List<UserControl> ProcessClass(object rootClass)
         {
             var userControls = new List<UserControl>();
+            var rootClassType = rootClass.GetType();
 
             var rootFieldGroupCard = new UserControls.FieldGroupCard();
 
-            var builtUserControls = BuildUserControls(rootClass, GetProprites(rootClass.GetType(), Types.Prop));
-
-            
-
+            var builtUserControls = BuildUserControls(rootClass, GetProprites(rootClassType, Types.Prop));
 
             builtUserControls.ForEach(control =>
             {
                 rootFieldGroupCard.ControlsWrapPanel.Children.Add(control);
             });
 
-            var formClass = rootClass.GetType().GetCustomAttribute<FormClass>();
-            var displayName = rootClass.GetType().Name;
+            var formClass = rootClassType.GetCustomAttribute<FormClass>();
+            var displayName = rootClassType.Name;
 
             if (formClass != null)
             {
@@ -144,6 +146,13 @@ namespace AutoFormGenorator
                     listType = formField.NestedListClassType;
                 }
 
+                if (list == null)
+                {
+                    var constructedListType = typeof(List<>).MakeGenericType(listType);
+
+                    list = Activator.CreateInstance(constructedListType) as System.Collections.IList;
+                }
+
                 var displayName = propInfo.Name;
 
                 var fieldName = rootClassType.FullName + "." + propInfo.Name;
@@ -180,7 +189,7 @@ namespace AutoFormGenorator
         {
             var listControlItem = new UserControls.ListControls.Item();
 
-            ProcressClass(item).ForEach(control =>
+            ProcessClass(item).ForEach(control =>
             {
                 listControlItem.ControlWrapPanel.Children.Add(control);
             });
@@ -224,7 +233,7 @@ namespace AutoFormGenorator
                     propInfo.SetValue(rootClass, nestedSettingsClass);
                 }
 
-                controls.AddRange(ProcressClass(nestedSettingsClass));
+                controls.AddRange(ProcessClass(nestedSettingsClass));
             }
 
             return controls;
@@ -235,6 +244,8 @@ namespace AutoFormGenorator
             var userControls = new List<UserControl>();
 
             var SortedControls = new List<PropInfoSorterClass>();
+
+            var classType = Class.GetType();
 
             double displayNameWidth = 0;
             double valueWidth = 100;
@@ -261,9 +272,9 @@ namespace AutoFormGenorator
                 });
             });
 
-            if (Attribute.IsDefined(Class.GetType(), typeof(FormClass)))
+            if (Attribute.IsDefined(classType, typeof(FormClass)))
             {
-                var formClass = Class.GetType().GetCustomAttribute<FormClass>();
+                var formClass = classType.GetCustomAttribute<FormClass>();
 
                 if (formClass.FormValueWidth != -1)
                 {
@@ -283,7 +294,7 @@ namespace AutoFormGenorator
 
                 if (control != null)
                 {
-                    var FieldConditions = GetFieldConditions(Class.GetType(), propInfo.PropertyInfo.Name);
+                    var FieldConditions = GetFieldConditions(classType, propInfo.PropertyInfo.Name);
 
                     if (FieldConditions.Count > 0)
                     {
@@ -298,7 +309,7 @@ namespace AutoFormGenorator
                         {
                             if (FieldCondition != null)
                             {
-                                var filedName = Class.GetType().FullName + "." + FieldCondition.Field;
+                                var filedName = classType.FullName + "." + FieldCondition.Field;
                                 if (name == filedName)
                                 {
                                     if (CanConditionalDisplay(FieldCondition, value.ToString()) == false)
@@ -377,7 +388,7 @@ namespace AutoFormGenorator
                     if (formField.Required)
                     {
                         stringField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
-                        OnViladate += stringField.Viladate;
+                        OnValidate += stringField.Validate;
                     }
                     if (formField.ToolTip != string.Empty)
                     {
@@ -406,7 +417,7 @@ namespace AutoFormGenorator
                     if (formField.Required)
                     {
                         passwordField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
-                        OnViladate += passwordField.Viladate;
+                        OnValidate += passwordField.Validate;
                     }
                     if (formField.ToolTip != string.Empty)
                     {
@@ -435,7 +446,7 @@ namespace AutoFormGenorator
                     if (formField.Required)
                     {
                         doubleField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
-                        OnViladate += doubleField.Viladate;
+                        OnValidate += doubleField.Validate;
                     }
                     if (formField.ToolTip != string.Empty)
                     {
@@ -466,7 +477,7 @@ namespace AutoFormGenorator
                     if (formField.Required)
                     {
                         intField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
-                        OnViladate += intField.Viladate;
+                        OnValidate += intField.Validate;
                     }
                     if (formField.ToolTip != string.Empty)
                     {
@@ -497,7 +508,7 @@ namespace AutoFormGenorator
                     if (formField.Required)
                     {
                         floatField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
-                        OnViladate += floatField.Viladate;
+                        OnValidate += floatField.Validate;
                     }
                     if (formField.ToolTip != string.Empty)
                     {
@@ -527,7 +538,7 @@ namespace AutoFormGenorator
                     if (formField.Required)
                     {
                         booleanField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
-                        OnViladate += booleanField.Viladate;
+                        OnValidate += booleanField.Validate;
                     }
                     if (formField.ToolTip != string.Empty)
                     {
@@ -559,7 +570,7 @@ namespace AutoFormGenorator
                     if (formField.Required)
                     {
                         colourPickerField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
-                        OnViladate += colourPickerField.Viladate;
+                        OnValidate += colourPickerField.Validate;
                     }
                     if (formField.ToolTip != string.Empty)
                     {
@@ -640,7 +651,7 @@ namespace AutoFormGenorator
                     if (formField.Required)
                     {
                         folderStringField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
-                        OnViladate += folderStringField.Viladate;
+                        OnValidate += folderStringField.Validate;
                     }
                     if (formField.ToolTip != string.Empty)
                     {
@@ -684,7 +695,7 @@ namespace AutoFormGenorator
 
             rawPropertyInfos.ForEach(prop =>
             {
-                var formDropdownItem = (FormDropdownItem)prop.GetCustomAttribute< FormDropdownItem>();
+                var formDropdownItem = prop.GetCustomAttribute<FormDropdownItem>();
 
                 var displayName = prop.Name;
 
@@ -693,7 +704,7 @@ namespace AutoFormGenorator
                     displayName = formDropdownItem.DisplayValue;
                 }
 
-                var value = formDropdownItem.Value != string.Empty ? formDropdownItem.Value : prop.GetValue(dropClass).ToString();
+                var value = (string) formDropdownItem.Value != string.Empty ? formDropdownItem.Value : prop.GetValue(dropClass).ToString();
 
                 dropdownItems.Add(new DropdownField.DropdownItem()
                 {
