@@ -52,14 +52,14 @@ namespace AutoFormGenerator
             HasChanged = true;
         }
 
-        public void SubscribeToPropertyModified<T>(string fieldName, Action a)
+        public void SubscribeToPropertyModified<T>(string fieldName, Events.PropertyModified a)
         {
             OnPropertyModified += (localFieldName, value) =>
             {
                 var objectType = typeof(T);
                 if (objectType.FullName + "." + fieldName == localFieldName)
                 {
-                    a.Invoke();
+                    a.Invoke(localFieldName, value);
                 }
             };
         }
