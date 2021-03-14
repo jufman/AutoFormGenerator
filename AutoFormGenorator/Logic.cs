@@ -43,7 +43,7 @@ namespace AutoFormGenerator
             OnPropertyModified += Logic_OnPropertyModified;
             sw.Stop();
 
-            Console.WriteLine("typeof(Test): {0}ms", sw.ElapsedMilliseconds);
+            Console.WriteLine("AFG Process Time: {0}ms", sw.ElapsedMilliseconds);
             return formControl;
         }
 
