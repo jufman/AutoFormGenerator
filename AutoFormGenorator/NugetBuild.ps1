@@ -1,0 +1,1 @@
+nuget.exe pack -Properties Configuration=Release
