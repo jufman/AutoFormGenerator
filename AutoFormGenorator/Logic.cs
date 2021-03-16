@@ -18,6 +18,9 @@ namespace AutoFormGenerator
         private delegate void AddSpecialDropdownItems(string FieldName, List<FormDropdownItem> DropdownItems);
         private event AddSpecialDropdownItems OnAddSpecialDropdownItems;
 
+        private delegate void SpecialDropdownDisplaying(string FieldName);
+        private event SpecialDropdownDisplaying OnSpecialDropdownDisplaying;
+
         public bool HasChanged { get; set; } = false;
 
         public UserControls.FormControl BuildFormControl<T>(T Class)
@@ -628,6 +631,8 @@ namespace AutoFormGenerator
                         }
                     };
 
+                    OnSpecialDropdownDisplaying?.Invoke(fieldName);
+
                     specialDropdown.SelectComboBox.SelectionChanged += (sen, e) =>
                     {
                         var selectedItem = (ComboBoxItem)specialDropdown.SelectComboBox.SelectedItem;
@@ -721,6 +726,15 @@ namespace AutoFormGenerator
             var objectType = typeof(T);
 
             OnAddSpecialDropdownItems?.Invoke(objectType.FullName + "." + FieldName, DropdownItems);
+
+            OnSpecialDropdownDisplaying += name =>
+            {
+                if (name == objectType.FullName + "." + FieldName)
+                {
+                    OnAddSpecialDropdownItems?.Invoke(objectType.FullName + "." + FieldName, DropdownItems);
+                }
+            };
+            
         }
 
         private List<PropertyInfo> GetProprites(Type baseType, Types type)
