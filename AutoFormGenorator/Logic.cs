@@ -559,6 +559,7 @@ namespace AutoFormGenerator
                     };
                     userControl = booleanField;
                     break;
+                /*
                 case ObjectTypes.ColourPicker:
                     var colourPickerField = new ColourPickerField(displayValue, (string)propInfo.GetValue(Class))
                     {
@@ -586,6 +587,7 @@ namespace AutoFormGenerator
                     };
                     userControl = colourPickerField;
                     break;
+                */
                 case ObjectTypes.ObjectDropdown:
                     var dropdownField = new DropdownField(displayValue, BuildDropdownItems(formField.DropDownClass), (string)propInfo.GetValue(Class))
                     {

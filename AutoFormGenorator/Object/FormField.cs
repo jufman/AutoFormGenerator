@@ -52,7 +52,7 @@ namespace AutoFormGenerator.Object
         Int32,
         Single,
         Boolean,
-        ColourPicker,
+        //ColourPicker,
         ObjectDropdown,
         SpecialDropdown,
         FolderBrowser,

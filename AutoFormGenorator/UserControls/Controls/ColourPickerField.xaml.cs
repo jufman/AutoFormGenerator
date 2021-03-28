@@ -16,7 +16,7 @@ namespace AutoFormGenerator.UserControls.Controls
             DisplayNameTextBlock.Text = DisplayName;
             try
             {
-                ValueColourPicker.SelectedColor = ((SolidColorBrush)(new BrushConverter().ConvertFrom(Value))).Color;
+                //ValueColourPicker.SelectedColor = ((SolidColorBrush)(new BrushConverter().ConvertFrom(Value))).Color;
             }
             catch (Exception e)
             {

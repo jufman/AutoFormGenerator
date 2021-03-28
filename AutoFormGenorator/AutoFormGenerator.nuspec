@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>AutoFormGenerator.Jnet.Systems</id>
-    <version>1.2.2</version>
+    <version>1.2.3</version>
     <authors>Justin Campbell</authors>
     <title>Auto Form Generator</title>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
