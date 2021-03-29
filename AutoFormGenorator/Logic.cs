@@ -289,8 +289,6 @@ namespace AutoFormGenerator
 
             PropInfoSorterClasses.ForEach(propInfo =>
             {
-                Assembly[] loaded = AppDomain.CurrentDomain.GetAssemblies();
-
                 var _propInfo = propInfo.PropertyInfo;
 
                 var control = BuildControl(_propInfo, Class, displayNameWidth, valueWidth);
@@ -306,25 +304,11 @@ namespace AutoFormGenerator
 
                     FieldConditions.ForEach(info =>
                     {
-                        var FieldCondition = (FieldCondition)info.GetCustomAttributes(typeof(FieldCondition), true).FirstOrDefault();
+                        var FieldCondition = (FieldCondition) info.GetCustomAttributes(typeof(FieldCondition), true).FirstOrDefault();
 
                         OnPropertyModified += (name, value) =>
                         {
-                            if (FieldCondition != null)
-                            {
-                                var filedName = classType.FullName + "." + FieldCondition.Field;
-                                if (name == filedName)
-                                {
-                                    if (CanConditionalDisplay(FieldCondition, value.ToString()) == false)
-                                    {
-                                        control.Visibility = Visibility.Hidden;
-                                    }
-                                    else
-                                    {
-                                        control.Visibility = Visibility.Visible;
-                                    }
-                                }
-                            }
+                            HandleFieldConditions(FieldCondition, classType, name, value, control);
                         };
                     });
 
@@ -333,6 +317,25 @@ namespace AutoFormGenerator
             });
 
             return userControls;
+        }
+
+        private void HandleFieldConditions(FieldCondition FieldCondition, Type classType, string name, object value, UserControl control)
+        {
+            if (FieldCondition != null)
+            {
+                var filedName = classType.FullName + "." + FieldCondition.Field;
+                if (name == filedName)
+                {
+                    if (CanConditionalDisplay(FieldCondition, value.ToString()) == false)
+                    {
+                        control.Visibility = Visibility.Hidden;
+                    }
+                    else
+                    {
+                        control.Visibility = Visibility.Visible;
+                    }
+                }
+            }
         }
             
         private UserControl BuildControl(PropertyInfo propInfo, object Class, double displayNameWidth = 90, double valueWidth = 100)
@@ -374,7 +377,7 @@ namespace AutoFormGenerator
             //var obj = Activator.CreateInstance(Class.GetType());
             //object jh = PropInfo.GetValue(obj, new object[] { });
 
-            switch (Enum.Parse(typeof(ObjectTypes) ,propertyType))
+            switch (Enum.Parse(typeof(ObjectTypes), propertyType))
             {
                 case ObjectTypes.String:
                     var stringField = new StringField(displayValue, (string)propInfo.GetValue(Class))
