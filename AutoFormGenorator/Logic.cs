@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using AutoFormGenerator.Object;
 using AutoFormGenerator.UserControls.Controls;
 
@@ -21,11 +23,43 @@ namespace AutoFormGenerator
         private delegate void SpecialDropdownDisplaying(string FieldName);
         private event SpecialDropdownDisplaying OnSpecialDropdownDisplaying;
 
+        public UserControls.FormControl formControl;
+
         public bool HasChanged { get; set; } = false;
+
+        private List<string> MDPacks = new List<string>
+        {
+            "pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Dark.xaml",
+            "pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml",
+            "pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Grey.xaml"
+        };
+
+        public Logic()
+        {
+            formControl = new UserControls.FormControl();
+
+            var md = Application.Current.Resources.MergedDictionaries;
+
+            MDPacks.ForEach(pack =>
+            {
+                var resourceDictionary = md.Any(dictionary => dictionary.Source.AbsoluteUri == pack);
+
+                if (resourceDictionary == false)
+                {
+                    var mr1 = new ResourceDictionary
+                    {
+                        Source = new Uri(
+                            pack,
+                            UriKind.Absolute)
+                    };
+                    formControl.Resources.MergedDictionaries.Add(mr1);
+                }
+            });
+        }
 
         public UserControls.FormControl BuildFormControl<T>(T Class)
         {
-            Stopwatch sw = Stopwatch.StartNew();
+            var sw = Stopwatch.StartNew();
             object RootClass = Class;
             if (Class is System.Collections.IList)
             {
@@ -36,10 +70,7 @@ namespace AutoFormGenerator
                 RootClass = wrapperClass;
             }
 
-            var formControl = new UserControls.FormControl
-            {
-                Tag = RootClass
-            };
+            formControl.Tag = RootClass;
 
             ProcessRootClass(RootClass, formControl);
 
@@ -84,11 +115,13 @@ namespace AutoFormGenerator
 
         private void ProcessRootClass(object rootClass, UserControls.FormControl formControl)
         {
-            ProcessClass(rootClass).ForEach(uc => {
+            var processedRootClass = ProcessClass(rootClass);
+            foreach (var uc in processedRootClass)
+            {
                 var parent = new UserControls.Card();
                 parent.ControlGrid.Children.Add(uc);
                 formControl.DisplayStactPanel.Children.Add(parent);
-            });
+            }
         }
 
         private List<UserControl> ProcessClass(object rootClass)
@@ -97,7 +130,7 @@ namespace AutoFormGenerator
             var rootClassType = rootClass.GetType();
 
             var rootFieldGroupCard = new UserControls.FieldGroupCard();
-
+            
             var builtUserControls = BuildUserControls(rootClass, GetProprites(rootClassType, Types.Prop));
 
             builtUserControls.ForEach(control =>
@@ -120,7 +153,9 @@ namespace AutoFormGenerator
                 userControls.Add(rootFieldGroupCard);
             }
 
-            userControls.AddRange(HandleNestedSettings(rootClass));
+            var handledNestedSettings = HandleNestedSettings(rootClass);
+
+            userControls.AddRange(handledNestedSettings);
             userControls.AddRange(HandleNestedList(rootClass));
 
             return userControls;
@@ -135,7 +170,7 @@ namespace AutoFormGenerator
             var userControls = new List<UserControl>();
 
 
-            nestedLists.ForEach(propInfo =>
+            nestedLists.ForEach(async propInfo =>
             {
                 var formField = (FormField)propInfo.GetCustomAttributes(typeof(FormField), true).FirstOrDefault();
 
@@ -165,7 +200,7 @@ namespace AutoFormGenerator
                     displayName = formField.DisplayName;
                 }
 
-                rootFieldGroupCard.AddItemIcon.MouseLeftButtonUp += (s, e) =>
+                rootFieldGroupCard.AddItemIcon.MouseLeftButtonUp += async (s, e) =>
                 {
                     var nestedItem = Activator.CreateInstance(listType);
 
@@ -173,14 +208,17 @@ namespace AutoFormGenerator
 
                     OnPropertyModified?.Invoke(fieldName, null);
 
-                    rootFieldGroupCard.ControlsWrapPanel.Children.Add(AddNewListItem(nestedItem, list, rootFieldGroupCard, fieldName));
+                    var addNewItem = AddNewListItem(nestedItem, list, rootFieldGroupCard, fieldName);
+
+                    rootFieldGroupCard.ControlsWrapPanel.Children.Add(addNewItem);
                 };
 
                 rootFieldGroupCard.DisplayNameTextBlock.Text = displayName;
  
                 foreach (var item in list)
                 {
-                    rootFieldGroupCard.ControlsWrapPanel.Children.Add(AddNewListItem(item, list, rootFieldGroupCard, fieldName));
+                    var addNewItem = AddNewListItem(item, list, rootFieldGroupCard, fieldName);
+                    rootFieldGroupCard.ControlsWrapPanel.Children.Add(addNewItem);
                 }
                 userControls.Add(rootFieldGroupCard);
             });
@@ -192,7 +230,9 @@ namespace AutoFormGenerator
         {
             var listControlItem = new UserControls.ListControls.Item();
 
-            ProcessClass(item).ForEach(control =>
+            var ProcessdClass = ProcessClass(item);
+
+            ProcessdClass.ForEach(control =>
             {
                 listControlItem.ControlWrapPanel.Children.Add(control);
             });
@@ -236,7 +276,9 @@ namespace AutoFormGenerator
                     propInfo.SetValue(rootClass, nestedSettingsClass);
                 }
 
-                controls.AddRange(ProcessClass(nestedSettingsClass));
+                var ProcessedClass = ProcessClass(nestedSettingsClass);
+
+                controls.AddRange(ProcessedClass);
             }
 
             return controls;
@@ -252,7 +294,7 @@ namespace AutoFormGenerator
 
             double displayNameWidth = 0;
             double valueWidth = 100;
-            props.ForEach(propInfo =>
+            foreach (var propInfo in props)
             {
                 var formField = (FormField)propInfo.GetCustomAttributes(typeof(FormField), true).FirstOrDefault();
 
@@ -273,7 +315,7 @@ namespace AutoFormGenerator
                     Order = formField.Order,
                     PropertyInfo = propInfo
                 });
-            });
+            }
 
             if (Attribute.IsDefined(classType, typeof(FormClass)))
             {
@@ -287,36 +329,60 @@ namespace AutoFormGenerator
 
             var PropInfoSorterClasses = SortedControls.OrderBy(a => a.Order).ToList();
 
-            PropInfoSorterClasses.ForEach(propInfo =>
+            var listOfTasks = new List<Task<UserControl>>();
+
+            foreach (var propInfo in PropInfoSorterClasses)
             {
-                var _propInfo = propInfo.PropertyInfo;
-
-                var control = BuildControl(_propInfo, Class, displayNameWidth, valueWidth);
-
-                if (control != null)
+                var userControl = HandleUserControl(propInfo, Class, displayNameWidth, valueWidth, classType);
+                if (userControl != null)
                 {
-                    var FieldConditions = GetFieldConditions(classType, propInfo.PropertyInfo.Name);
-
-                    if (FieldConditions.Count > 0)
-                    {
-                        control.Visibility = Visibility.Hidden;
-                    }
-
-                    FieldConditions.ForEach(info =>
-                    {
-                        var FieldCondition = (FieldCondition) info.GetCustomAttributes(typeof(FieldCondition), true).FirstOrDefault();
-
-                        OnPropertyModified += (name, value) =>
-                        {
-                            HandleFieldConditions(FieldCondition, classType, name, value, control);
-                        };
-                    });
-
-                    userControls.Add(control);
+                    userControls.Add(userControl);
                 }
-            });
+            }
+
+            /*
+            var runningTask = await Task.WhenAll(listOfTasks);
+
+            foreach (var userControl in runningTask)
+            {
+                if (userControl != null)
+                {
+                    userControls.Add(HandleUserControl(propInfo, Class, displayNameWidth, valueWidth, classType));
+                }
+            }
+            */
 
             return userControls;
+        }
+
+        private UserControl HandleUserControl(PropInfoSorterClass propInfo, object Class, double displayNameWidth, double valueWidth, Type classType)
+        {
+            var _propInfo = propInfo.PropertyInfo;
+            var control = BuildControl(_propInfo, Class, displayNameWidth, valueWidth);
+
+            if (control != null)
+            {
+                var FieldConditions = GetFieldConditions(classType, propInfo.PropertyInfo.Name);
+
+                if (FieldConditions.Count > 0)
+                {
+                    control.Visibility = Visibility.Hidden;
+                }
+
+                FieldConditions.ForEach(info =>
+                {
+                    var FieldCondition = (FieldCondition)info.GetCustomAttributes(typeof(FieldCondition), true).FirstOrDefault();
+
+                    OnPropertyModified += (name, value) =>
+                    {
+                        HandleFieldConditions(FieldCondition, classType, name, value, control);
+                    };
+                });
+
+                return control;
+            }
+
+            return null;
         }
 
         private void HandleFieldConditions(FieldCondition FieldCondition, Type classType, string name, object value, UserControl control)
@@ -337,17 +403,28 @@ namespace AutoFormGenerator
                 }
             }
         }
-            
-        private UserControl BuildControl(PropertyInfo propInfo, object Class, double displayNameWidth = 90, double valueWidth = 100)
+
+        private UserControl BuildControl(PropertyInfo propInfo, object Class, double displayNameWidth = 90,
+            double valueWidth = 100)
         {
-            var controlWidth = (displayNameWidth + valueWidth) + 50;
-            double controlHeight = 40;
-
-            var formField = (FormField)propInfo.GetCustomAttributes(typeof(FormField), true).FirstOrDefault();
-
+            var propertyType = string.Empty;
             UserControl userControl = null;
 
-            var displayValue = propInfo.Name;
+            var fieldName = string.Empty;
+            object value = string.Empty;
+
+            double controlWidth = 0;
+            double controlHeight = 0;
+
+            var displayValue = string.Empty;
+            FormField formField = null;
+
+            controlWidth = (displayNameWidth + valueWidth) + 50;
+            controlHeight = 40;
+
+            formField = (FormField) propInfo.GetCustomAttributes(typeof(FormField), true).FirstOrDefault();
+
+            displayValue = propInfo.Name;
 
             if (formField.DisplayName != string.Empty)
             {
@@ -359,28 +436,26 @@ namespace AutoFormGenerator
                 displayValue += "*";
             }
 
-            var propertyType = propInfo.PropertyType.Name;
+            propertyType = propInfo.PropertyType.Name;
 
             if (formField.ObjectTypeName != ObjectTypes.Default)
             {
                 propertyType = formField.ObjectTypeName.ToString();
             }
 
+            fieldName = Class.GetType().FullName + "." + propInfo.Name;
+
+            value = propInfo.GetValue(Class);
+
             if (!Enum.IsDefined(typeof(ObjectTypes), propertyType))
             {
                 return userControl;
             }
 
-            var fieldName = Class.GetType().FullName + "." + propInfo.Name;
-
-            
-            //var obj = Activator.CreateInstance(Class.GetType());
-            //object jh = PropInfo.GetValue(obj, new object[] { });
-
             switch (Enum.Parse(typeof(ObjectTypes), propertyType))
             {
                 case ObjectTypes.String:
-                    var stringField = new StringField(displayValue, (string)propInfo.GetValue(Class))
+                    var stringField = new StringField(displayValue, (string) value)
                     {
                         Width = controlWidth,
                         Height = controlHeight
@@ -391,15 +466,18 @@ namespace AutoFormGenerator
                     {
                         stringField.ValueTextBox.IsEnabled = false;
                     }
+
                     if (formField.Required)
                     {
                         stringField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
                         OnValidate += stringField.Validate;
                     }
+
                     if (formField.ToolTip != string.Empty)
                     {
                         stringField.ValueTextBox.ToolTip = formField.ToolTip;
                     }
+
                     stringField.ValueTextBox.TextChanged += (sen, e) =>
                     {
                         propInfo.SetValue(Class, stringField.ValueTextBox.Text);
@@ -409,7 +487,7 @@ namespace AutoFormGenerator
                     userControl = stringField;
                     break;
                 case ObjectTypes.Password:
-                    var passwordField = new PasswordField(displayValue, (string)propInfo.GetValue(Class))
+                    var passwordField = new PasswordField(displayValue, (string) value)
                     {
                         Width = controlWidth,
                         Height = controlHeight
@@ -420,15 +498,18 @@ namespace AutoFormGenerator
                     {
                         passwordField.ValuePasswordBox.IsEnabled = false;
                     }
+
                     if (formField.Required)
                     {
                         passwordField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
                         OnValidate += passwordField.Validate;
                     }
+
                     if (formField.ToolTip != string.Empty)
                     {
                         passwordField.ValuePasswordBox.ToolTip = formField.ToolTip;
                     }
+
                     passwordField.ValuePasswordBox.PasswordChanged += (sen, e) =>
                     {
                         propInfo.SetValue(Class, passwordField.ValuePasswordBox.Password);
@@ -438,7 +519,7 @@ namespace AutoFormGenerator
                     userControl = passwordField;
                     break;
                 case ObjectTypes.Double:
-                    var doubleField = new DoubleField(displayValue, (Double)propInfo.GetValue(Class))
+                    var doubleField = new DoubleField(displayValue, (Double) value)
                     {
                         Width = controlWidth,
                         Height = controlHeight
@@ -449,15 +530,18 @@ namespace AutoFormGenerator
                     {
                         doubleField.ValueTextBox.IsEnabled = false;
                     }
+
                     if (formField.Required)
                     {
                         doubleField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
                         OnValidate += doubleField.Validate;
                     }
+
                     if (formField.ToolTip != string.Empty)
                     {
                         doubleField.ValueTextBox.ToolTip = formField.ToolTip;
                     }
+
                     doubleField.ValueTextBox.TextChanged += (sen, e) =>
                     {
                         if (double.TryParse(doubleField.ValueTextBox.Text, out var doubleValue))
@@ -469,7 +553,7 @@ namespace AutoFormGenerator
                     userControl = doubleField;
                     break;
                 case ObjectTypes.Int32:
-                    var intField = new IntField(displayValue, (int)propInfo.GetValue(Class))
+                    var intField = new IntField(displayValue, (int) value)
                     {
                         Width = controlWidth,
                         Height = controlHeight
@@ -480,15 +564,18 @@ namespace AutoFormGenerator
                     {
                         intField.ValueTextBox.IsEnabled = false;
                     }
+
                     if (formField.Required)
                     {
                         intField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
                         OnValidate += intField.Validate;
                     }
+
                     if (formField.ToolTip != string.Empty)
                     {
                         intField.ValueTextBox.ToolTip = formField.ToolTip;
                     }
+
                     intField.ValueTextBox.TextChanged += (sen, e) =>
                     {
                         if (int.TryParse(intField.ValueTextBox.Text, out var intValue))
@@ -500,7 +587,7 @@ namespace AutoFormGenerator
                     userControl = intField;
                     break;
                 case ObjectTypes.Single:
-                    var floatField = new FloatField(displayValue, (float)propInfo.GetValue(Class))
+                    var floatField = new FloatField(displayValue, (float) value)
                     {
                         Width = controlWidth,
                         Height = controlHeight
@@ -511,15 +598,18 @@ namespace AutoFormGenerator
                     {
                         floatField.ValueTextBox.IsEnabled = false;
                     }
+
                     if (formField.Required)
                     {
                         floatField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
                         OnValidate += floatField.Validate;
                     }
+
                     if (formField.ToolTip != string.Empty)
                     {
                         floatField.ValueTextBox.ToolTip = formField.ToolTip;
                     }
+
                     floatField.ValueTextBox.TextChanged += (sen, e) =>
                     {
                         if (float.TryParse(floatField.ValueTextBox.Text, out var floatValue))
@@ -531,7 +621,7 @@ namespace AutoFormGenerator
                     userControl = floatField;
                     break;
                 case ObjectTypes.Boolean:
-                    var booleanField = new BooleanField(displayValue, (bool)propInfo.GetValue(Class))
+                    var booleanField = new BooleanField(displayValue, (bool) value)
                     {
                         Width = controlWidth,
                         Height = controlHeight
@@ -541,15 +631,18 @@ namespace AutoFormGenerator
                     {
                         booleanField.ValueCheckBox.IsEnabled = false;
                     }
+
                     if (formField.Required)
                     {
                         booleanField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
                         OnValidate += booleanField.Validate;
                     }
+
                     if (formField.ToolTip != string.Empty)
                     {
                         booleanField.ValueCheckBox.ToolTip = formField.ToolTip;
                     }
+
                     booleanField.ValueCheckBox.Checked += (sen, e) =>
                     {
                         propInfo.SetValue(Class, booleanField.ValueCheckBox.IsChecked);
@@ -564,7 +657,7 @@ namespace AutoFormGenerator
                     break;
                 /*
                 case ObjectTypes.ColourPicker:
-                    var colourPickerField = new ColourPickerField(displayValue, (string)propInfo.GetValue(Class))
+                    var colourPickerField = new ColourPickerField(displayValue, (string)value)
                     {
                         Width = controlWidth,
                         Height = controlHeight
@@ -592,7 +685,8 @@ namespace AutoFormGenerator
                     break;
                 */
                 case ObjectTypes.ObjectDropdown:
-                    var dropdownField = new DropdownField(displayValue, BuildDropdownItems(formField.DropDownClass), (string)propInfo.GetValue(Class))
+                    var dropdownField = new DropdownField(displayValue, BuildDropdownItems(formField.DropDownClass),
+                        (string) value)
                     {
                         Width = controlWidth,
                         Height = controlHeight
@@ -603,10 +697,12 @@ namespace AutoFormGenerator
                     {
                         dropdownField.SelectComboBox.IsEnabled = false;
                     }
+
                     if (formField.ToolTip != string.Empty)
                     {
                         dropdownField.SelectComboBox.ToolTip = formField.ToolTip;
                     }
+
                     dropdownField.SelectComboBox.SelectionChanged += (sen, e) =>
                     {
                         var selectedItem = (ComboBoxItem) dropdownField.SelectComboBox.SelectedItem;
@@ -632,7 +728,7 @@ namespace AutoFormGenerator
                     {
                         if (Name == fieldName)
                         {
-                            specialDropdown.AddDropdownItems(Items, propInfo.GetValue(Class));
+                            specialDropdown.AddDropdownItems(Items, value);
                         }
                     };
 
@@ -640,7 +736,7 @@ namespace AutoFormGenerator
 
                     specialDropdown.SelectComboBox.SelectionChanged += (sen, e) =>
                     {
-                        var selectedItem = (ComboBoxItem)specialDropdown.SelectComboBox.SelectedItem;
+                        var selectedItem = (ComboBoxItem) specialDropdown.SelectComboBox.SelectedItem;
                         if (selectedItem != null)
                         {
                             var DropdownItem = (FormDropdownItem) selectedItem.Content;
@@ -651,7 +747,7 @@ namespace AutoFormGenerator
                     userControl = specialDropdown;
                     break;
                 case ObjectTypes.FolderBrowser:
-                    var folderStringField = new FolderBrowserField(displayValue, (string)propInfo.GetValue(Class))
+                    var folderStringField = new FolderBrowserField(displayValue, (string) value)
                     {
                         Width = controlWidth,
                         Height = controlHeight
@@ -663,10 +759,12 @@ namespace AutoFormGenerator
                         folderStringField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
                         OnValidate += folderStringField.Validate;
                     }
+
                     if (formField.ToolTip != string.Empty)
                     {
                         folderStringField.ValueTextBox.ToolTip = formField.ToolTip;
                     }
+
                     folderStringField.ValueTextBox.TextChanged += (sen, e) =>
                     {
                         propInfo.SetValue(Class, folderStringField.ValueTextBox.Text);

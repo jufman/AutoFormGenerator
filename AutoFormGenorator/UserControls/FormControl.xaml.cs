@@ -1,4 +1,5 @@
 ﻿using System.Windows.Controls;
+using FontAwesome.WPF;
 
 namespace AutoFormGenerator.UserControls
 {
