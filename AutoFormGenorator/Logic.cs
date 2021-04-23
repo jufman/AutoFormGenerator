@@ -9,6 +9,8 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using AutoFormGenerator.Object;
 using AutoFormGenerator.UserControls.Controls;
+using MaterialDesignColors;
+using MaterialDesignThemes.Wpf;
 
 namespace AutoFormGenerator
 {
@@ -25,20 +27,20 @@ namespace AutoFormGenerator
 
         public UserControls.FormControl formControl;
 
+        public bool Debug { get; set; }
+
         public bool HasChanged { get; set; } = false;
 
         private List<string> MDPacks = new List<string>
         {
-            "pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Dark.xaml",
             "pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml",
-            "pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Grey.xaml"
         };
 
         public Logic()
         {
             formControl = new UserControls.FormControl();
 
-            var md = Application.Current.Resources.MergedDictionaries;
+            var md = formControl.Resources.MergedDictionaries;
 
             MDPacks.ForEach(pack =>
             {
@@ -55,10 +57,23 @@ namespace AutoFormGenerator
                     formControl.Resources.MergedDictionaries.Add(mr1);
                 }
             });
+
+            var BI = new BundledTheme
+            {
+                BaseTheme = BaseTheme.Dark,
+                PrimaryColor = PrimaryColor.Grey,
+                SecondaryColor = SecondaryColor.Orange
+            };
+            formControl.Resources.MergedDictionaries.Add(BI);
         }
 
         public UserControls.FormControl BuildFormControl<T>(T Class)
         {
+            if (Debug)
+            {
+                formControl.DebugStatsWrapPanel.Visibility = Visibility.Visible;
+            }
+
             var sw = Stopwatch.StartNew();
             object RootClass = Class;
             if (Class is System.Collections.IList)
@@ -77,7 +92,19 @@ namespace AutoFormGenerator
             OnPropertyModified += Logic_OnPropertyModified;
             sw.Stop();
 
-            Console.WriteLine("AFG Process Time: {0}ms", sw.ElapsedMilliseconds);
+            if (Debug)
+            {
+                formControl.LoadTimeLabel.Content = $"Load Time: {sw.ElapsedMilliseconds}ms";
+
+                sw.Restart();
+
+                formControl.Loaded += (sender, args) =>
+                {
+                    formControl.DisplayTimeLabel.Content = $"Display Time: {sw.ElapsedMilliseconds}ms";
+                    sw.Stop();
+                };
+            }
+
             return formControl;
         }
 
@@ -119,18 +146,21 @@ namespace AutoFormGenerator
             foreach (var uc in processedRootClass)
             {
                 var parent = new UserControls.Card();
+
                 parent.ControlGrid.Children.Add(uc);
-                formControl.DisplayStactPanel.Children.Add(parent);
+                formControl.DisplayStackPanel.Children.Add(parent);
             }
         }
 
         private List<UserControl> ProcessClass(object rootClass)
         {
+            var sw = Stopwatch.StartNew();
+
             var userControls = new List<UserControl>();
             var rootClassType = rootClass.GetType();
 
             var rootFieldGroupCard = new UserControls.FieldGroupCard();
-            
+
             var builtUserControls = BuildUserControls(rootClass, GetProprites(rootClassType, Types.Prop));
 
             builtUserControls.ForEach(control =>
@@ -151,6 +181,12 @@ namespace AutoFormGenerator
             if (builtUserControls.Count != 0)
             {
                 userControls.Add(rootFieldGroupCard);
+            }
+
+            sw.Stop();
+            if (Debug)
+            {
+                rootFieldGroupCard.DisplayNameTextBlock.Text += $" - Process Time: {sw.ElapsedMilliseconds}ms";
             }
 
             var handledNestedSettings = HandleNestedSettings(rootClass);

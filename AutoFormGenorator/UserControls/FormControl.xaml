@@ -5,15 +5,26 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:fa="http://schemas.fontawesome.io/icons/"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             TextOptions.TextRenderingMode="Auto"
              mc:Ignorable="d" 
              HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
     <Grid>
-        <Grid Panel.ZIndex="100" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="LightGray" Opacity="0.5" x:Name="LoadingOverlay" Visibility="Hidden">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid Panel.ZIndex="100" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="LightGray" Opacity="0.5" x:Name="LoadingOverlay" Visibility="Hidden" Grid.RowSpan="2">
             <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Height="100" Width="100">
-                <fa:ImageAwesome Icon="Refresh" Spin="True" SpinDuration="4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <!--<fa:ImageAwesome Icon="Refresh" Spin="True" SpinDuration="4" HorizontalAlignment="Center" VerticalAlignment="Center"/>-->
             </Canvas>
         </Grid>
-        <StackPanel x:Name="DisplayStactPanel">
+
+        <WrapPanel Grid.Row="0" x:Name="DebugStatsWrapPanel" Visibility="Collapsed">
+            <Label Content="Load Time: " Height="30" Margin="0,0,0,0" x:Name="LoadTimeLabel" Foreground="Black"/>
+            <Label Content="Display Time: " Height="30" Margin="20,0,0,0" x:Name="DisplayTimeLabel" Foreground="Black" />
+        </WrapPanel>
+
+        <StackPanel x:Name="DisplayStackPanel" Grid.Row="1">
 
         </StackPanel>
     </Grid>
