@@ -85,6 +85,21 @@ namespace TestApp
                     }
                 });
 
+                AFG.PopulateSpecialDropdown<Objects.MainClass>("Act", new List<FormDropdownItem>
+                {
+                    new FormDropdownItem()
+                    {
+                        Value = 1.0,
+                        DisplayValue = "Car"
+                    }
+                });
+
+
+                AFG.SubscribeToOnPropertyFinishedEditing<Objects.MainClass>("TestString", (name, value) =>
+                {
+                    MessageBox.Show("Changed!!");
+                });
+
                 ContentStackPanel.Children.Add(AFG.formControl);
 
                 afgLogics.Add(AFG);

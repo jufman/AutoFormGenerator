@@ -7,17 +7,20 @@ using AutoFormGenerator.Object;
 
 namespace TestApp.Objects
 {
-    public class MainClass
+    public class MainClass : ExtendClass
     {
         [FormField]
         public string TestString { get; set; }
-        [FormField]
+
+        [FormField] 
         public bool TestBool { get; set; }
+
         [FormField]
         public int TestInt { get; set; }
         [FormField]
         public double TestDouble { get; set; }
         [FormField(ObjectTypeName = ObjectTypes.Password)]
+        [FieldCondition(Field = "TestBool", Operator = Operators.Equals, Value = true)]
         public string TestPassword { get; set; }
 
         [FormField(ObjectTypeName = ObjectTypes.SpecialDropdown)]
