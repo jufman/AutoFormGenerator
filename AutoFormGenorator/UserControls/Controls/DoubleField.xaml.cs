@@ -10,12 +10,29 @@ namespace AutoFormGenerator.UserControls.Controls
     /// </summary>
     public partial class DoubleField : UserControl
     {
+        private string HoldValue = "";
+        public bool HasUpdated { get; set; }
+
         public DoubleField(string DisplayValue, double Value)
         {
             InitializeComponent();
 
             DisplayNameTextBlock.Text = DisplayValue.ToString();
             ValueTextBox.Text = Value.ToString();
+
+            ValueTextBox.GotKeyboardFocus += (sender, args) =>
+            {
+                HoldValue = ValueTextBox.Text;
+                HasUpdated = false;
+            };
+
+            ValueTextBox.LostKeyboardFocus += (sender, args) =>
+            {
+                if (HoldValue != ValueTextBox.Text)
+                {
+                    HasUpdated = true;
+                }
+            };
         }
 
         private void ValueTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)

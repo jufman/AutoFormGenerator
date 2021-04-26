@@ -17,7 +17,8 @@ namespace AutoFormGenerator
     public class Logic
     {
         private event Events.Viladate OnValidate;
-        public event Events.PropertyModified OnPropertyModified;
+        private event Events.PropertyModified OnPropertyModified;
+        private event Events.PropertyFinishedEditing OnPropertyFinishedEditing;
 
         private delegate void AddSpecialDropdownItems(string FieldName, List<FormDropdownItem> DropdownItems);
         private event AddSpecialDropdownItems OnAddSpecialDropdownItems;
@@ -26,9 +27,7 @@ namespace AutoFormGenerator
         private event SpecialDropdownDisplaying OnSpecialDropdownDisplaying;
 
         public UserControls.FormControl formControl;
-
         public bool Debug { get; set; }
-
         public bool HasChanged { get; set; } = false;
 
         private List<string> MDPacks = new List<string>
@@ -116,6 +115,18 @@ namespace AutoFormGenerator
         public void SubscribeToPropertyModified<T>(string fieldName, Events.PropertyModified a)
         {
             OnPropertyModified += (localFieldName, value) =>
+            {
+                var objectType = typeof(T);
+                if (objectType.FullName + "." + fieldName == localFieldName)
+                {
+                    a.Invoke(localFieldName, value);
+                }
+            };
+        }
+
+        public void SubscribeToOnPropertyFinishedEditing<T>(string fieldName, Events.PropertyModified a)
+        {
+            OnPropertyFinishedEditing += (localFieldName, value) =>
             {
                 var objectType = typeof(T);
                 if (objectType.FullName + "." + fieldName == localFieldName)
@@ -242,7 +253,7 @@ namespace AutoFormGenerator
 
                     list.Add(nestedItem);
 
-                    OnPropertyModified?.Invoke(fieldName, null);
+                    OnPropertyModified?.Invoke(fieldName, nestedItem);
 
                     var addNewItem = AddNewListItem(nestedItem, list, rootFieldGroupCard, fieldName);
 
@@ -365,8 +376,6 @@ namespace AutoFormGenerator
 
             var PropInfoSorterClasses = SortedControls.OrderBy(a => a.Order).ToList();
 
-            var listOfTasks = new List<Task<UserControl>>();
-
             foreach (var propInfo in PropInfoSorterClasses)
             {
                 var userControl = HandleUserControl(propInfo, Class, displayNameWidth, valueWidth, classType);
@@ -376,17 +385,10 @@ namespace AutoFormGenerator
                 }
             }
 
-            /*
-            var runningTask = await Task.WhenAll(listOfTasks);
-
-            foreach (var userControl in runningTask)
+            PropInfoSorterClasses.ForEach(clase =>
             {
-                if (userControl != null)
-                {
-                    userControls.Add(HandleUserControl(propInfo, Class, displayNameWidth, valueWidth, classType));
-                }
-            }
-            */
+                OnPropertyModified?.Invoke(classType.FullName + "." + clase.PropertyInfo.Name, clase.PropertyInfo.GetValue(Class));
+            });
 
             return userControls;
         }
@@ -394,16 +396,12 @@ namespace AutoFormGenerator
         private UserControl HandleUserControl(PropInfoSorterClass propInfo, object Class, double displayNameWidth, double valueWidth, Type classType)
         {
             var _propInfo = propInfo.PropertyInfo;
-            var control = BuildControl(_propInfo, Class, displayNameWidth, valueWidth);
+
+            var control = BuildControl(_propInfo, Class, classType, displayNameWidth, valueWidth);
 
             if (control != null)
             {
                 var FieldConditions = GetFieldConditions(classType, propInfo.PropertyInfo.Name);
-
-                if (FieldConditions.Count > 0)
-                {
-                    control.Visibility = Visibility.Hidden;
-                }
 
                 FieldConditions.ForEach(info =>
                 {
@@ -430,7 +428,7 @@ namespace AutoFormGenerator
                 {
                     if (CanConditionalDisplay(FieldCondition, value.ToString()) == false)
                     {
-                        control.Visibility = Visibility.Hidden;
+                        control.Visibility = Visibility.Collapsed;
                     }
                     else
                     {
@@ -440,8 +438,7 @@ namespace AutoFormGenerator
             }
         }
 
-        private UserControl BuildControl(PropertyInfo propInfo, object Class, double displayNameWidth = 90,
-            double valueWidth = 100)
+        private UserControl BuildControl(PropertyInfo propInfo, object Class, Type classType, double displayNameWidth = 90, double valueWidth = 100)
         {
             var propertyType = string.Empty;
             UserControl userControl = null;
@@ -479,7 +476,7 @@ namespace AutoFormGenerator
                 propertyType = formField.ObjectTypeName.ToString();
             }
 
-            fieldName = Class.GetType().FullName + "." + propInfo.Name;
+            fieldName = classType.FullName + "." + propInfo.Name;
 
             value = propInfo.GetValue(Class);
 
@@ -520,6 +517,15 @@ namespace AutoFormGenerator
 
                         OnPropertyModified?.Invoke(fieldName, stringField.ValueTextBox.Text);
                     };
+
+                    stringField.ValueTextBox.LostKeyboardFocus += (sender, args) =>
+                    {
+                        if (stringField.HasUpdated)
+                        {
+                            OnPropertyFinishedEditing?.Invoke(fieldName, stringField.ValueTextBox.Text);
+                        }
+                    };
+
                     userControl = stringField;
                     break;
                 case ObjectTypes.Password:
@@ -552,6 +558,15 @@ namespace AutoFormGenerator
 
                         OnPropertyModified?.Invoke(fieldName, passwordField.ValuePasswordBox.Password);
                     };
+
+                    passwordField.ValuePasswordBox.LostKeyboardFocus += (sender, args) =>
+                    {
+                        if (passwordField.HasUpdated)
+                        {
+                            OnPropertyFinishedEditing?.Invoke(fieldName, passwordField.ValuePasswordBox.Password);
+                        }
+                    };
+
                     userControl = passwordField;
                     break;
                 case ObjectTypes.Double:
@@ -586,6 +601,15 @@ namespace AutoFormGenerator
                             OnPropertyModified?.Invoke(fieldName, doubleValue);
                         }
                     };
+
+                    doubleField.ValueTextBox.LostKeyboardFocus += (sender, args) =>
+                    {
+                        if (doubleField.HasUpdated && double.TryParse(doubleField.ValueTextBox.Text, out var doubleValue))
+                        {
+                            OnPropertyFinishedEditing?.Invoke(fieldName, doubleValue);
+                        }
+                    };
+
                     userControl = doubleField;
                     break;
                 case ObjectTypes.Int32:
@@ -620,6 +644,15 @@ namespace AutoFormGenerator
                             OnPropertyModified?.Invoke(fieldName, intValue);
                         }
                     };
+
+                    intField.ValueTextBox.LostKeyboardFocus += (sender, args) =>
+                    {
+                        if (intField.HasUpdated && int.TryParse(intField.ValueTextBox.Text, out var intValue))
+                        {
+                            OnPropertyFinishedEditing?.Invoke(fieldName, intValue);
+                        }
+                    };
+
                     userControl = intField;
                     break;
                 case ObjectTypes.Single:
@@ -654,6 +687,15 @@ namespace AutoFormGenerator
                             OnPropertyModified?.Invoke(fieldName, floatValue);
                         }
                     };
+
+                    floatField.ValueTextBox.LostKeyboardFocus += (sender, args) =>
+                    {
+                        if (floatField.HasUpdated && float.TryParse(floatField.ValueTextBox.Text, out var floatValue))
+                        {
+                            OnPropertyFinishedEditing?.Invoke(fieldName, floatValue);
+                        }
+                    };
+
                     userControl = floatField;
                     break;
                 case ObjectTypes.Boolean:
@@ -683,11 +725,13 @@ namespace AutoFormGenerator
                     {
                         propInfo.SetValue(Class, booleanField.ValueCheckBox.IsChecked);
                         OnPropertyModified?.Invoke(fieldName, booleanField.ValueCheckBox.IsChecked);
+                        OnPropertyFinishedEditing?.Invoke(fieldName, booleanField.ValueCheckBox.IsChecked);
                     };
                     booleanField.ValueCheckBox.Unchecked += (sen, e) =>
                     {
                         propInfo.SetValue(Class, booleanField.ValueCheckBox.IsChecked);
                         OnPropertyModified?.Invoke(fieldName, booleanField.ValueCheckBox.IsChecked);
+                        OnPropertyFinishedEditing?.Invoke(fieldName, booleanField.ValueCheckBox.IsChecked);
                     };
                     userControl = booleanField;
                     break;
@@ -744,6 +788,7 @@ namespace AutoFormGenerator
                         var selectedItem = (ComboBoxItem) dropdownField.SelectComboBox.SelectedItem;
                         propInfo.SetValue(Class, selectedItem.Tag.ToString());
                         OnPropertyModified?.Invoke(fieldName, selectedItem.Tag.ToString());
+                        OnPropertyFinishedEditing?.Invoke(fieldName, selectedItem.Tag.ToString());
                     };
                     userControl = dropdownField;
                     break;
@@ -778,6 +823,7 @@ namespace AutoFormGenerator
                             var DropdownItem = (FormDropdownItem) selectedItem.Content;
                             propInfo.SetValue(Class, DropdownItem.Value);
                             OnPropertyModified?.Invoke(fieldName, DropdownItem.Value);
+                            OnPropertyFinishedEditing?.Invoke(fieldName, DropdownItem.Value);
                         }
                     };
                     userControl = specialDropdown;
@@ -806,6 +852,7 @@ namespace AutoFormGenerator
                         propInfo.SetValue(Class, folderStringField.ValueTextBox.Text);
 
                         OnPropertyModified?.Invoke(fieldName, folderStringField.ValueTextBox.Text);
+                        OnPropertyFinishedEditing?.Invoke(fieldName, folderStringField.ValueTextBox.Text);
                     };
                     userControl = folderStringField;
                     break;
