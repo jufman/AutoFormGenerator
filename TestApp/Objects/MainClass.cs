@@ -19,6 +19,9 @@ namespace TestApp.Objects
         public int TestInt { get; set; }
         [FormField]
         public double TestDouble { get; set; }
+
+        [FormField(ObjectTypeName = ObjectTypes.TimePicker)]
+        public double TestDoubleTime { get; set; } = 300;
         [FormField(ObjectTypeName = ObjectTypes.Password)]
         [FieldCondition(Field = "TestBool", Operator = Operators.Equals, Value = true)]
         public string TestPassword { get; set; }

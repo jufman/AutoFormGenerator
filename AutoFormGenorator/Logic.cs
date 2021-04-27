@@ -856,6 +856,36 @@ namespace AutoFormGenerator
                     };
                     userControl = folderStringField;
                     break;
+                case ObjectTypes.TimePicker:
+                    var TimePickerField = new TimePickerField(displayValue, (double) value)
+                    {
+                        Width = controlWidth,
+                        Height = controlHeight
+                    };
+                    TimePickerField.DisplayNameTextBlock.Width = displayNameWidth;
+                    TimePickerField.TimePicker.Width = valueWidth;
+                    if (formField.Required)
+                    {
+                        TimePickerField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
+                        
+                    }
+                    if (formField.ToolTip != string.Empty)
+                    {
+                        TimePickerField.TimePicker.ToolTip = formField.ToolTip;
+                    }
+
+                    TimePickerField.TimePicker.SelectedTimeChanged += (sender, args) =>
+                    {
+                        var CurrentValue = TimePickerField.TimePicker.SelectedTime == null ? TimePickerField.TimePicker.SelectedTime.Value.TimeOfDay.TotalSeconds : 0;
+
+                        propInfo.SetValue(Class, CurrentValue);
+
+                        OnPropertyModified?.Invoke(fieldName, CurrentValue);
+                        OnPropertyFinishedEditing?.Invoke(fieldName, CurrentValue);
+                    };
+
+                    userControl = TimePickerField;
+                    break;
             }
 
             return userControl;

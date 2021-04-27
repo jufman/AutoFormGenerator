@@ -56,6 +56,7 @@ namespace AutoFormGenerator.Object
         ObjectDropdown,
         SpecialDropdown,
         FolderBrowser,
+        TimePicker,
         Default
     }
 }
