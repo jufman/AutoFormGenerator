@@ -37,8 +37,14 @@ namespace AutoFormGenerator.UserControls.Controls
 
         private void ValueTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            var textBox = sender as TextBox;
-            e.Handled = !Regex.IsMatch(e.Text, "[+-]?([0-9]*[.])?[0-9]+");
+            bool NotBlock = true;
+
+            NotBlock = Regex.IsMatch(e.Text, "[^0-9.]+");
+
+            double num = 0;
+            NotBlock = !double.TryParse(ValueTextBox.Text + e.Text, out num);
+
+            e.Handled = NotBlock;
         }
 
         public bool Validate()

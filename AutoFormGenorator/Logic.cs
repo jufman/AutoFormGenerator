@@ -17,8 +17,8 @@ namespace AutoFormGenerator
     public class Logic
     {
         private event Events.Viladate OnValidate;
-        private event Events.PropertyModified OnPropertyModified;
-        private event Events.PropertyFinishedEditing OnPropertyFinishedEditing;
+        public event Events.PropertyModified OnPropertyModified;
+        public event Events.PropertyFinishedEditing OnPropertyFinishedEditing;
 
         private delegate void AddSpecialDropdownItems(string FieldName, List<FormDropdownItem> DropdownItems);
         private event AddSpecialDropdownItems OnAddSpecialDropdownItems;
@@ -132,6 +132,21 @@ namespace AutoFormGenerator
                 if (objectType.FullName + "." + fieldName == localFieldName)
                 {
                     a.Invoke(localFieldName, value);
+                }
+            };
+        }
+
+        public void SubscribeToFieldFinishedEditing<T>(Events.PropertyModified a, params string[] fieldNames)
+        {
+            OnPropertyFinishedEditing += (localFieldName, value) =>
+            {
+                var objectType = typeof(T);
+                foreach (var fieldName in fieldNames)
+                {
+                    if (objectType.FullName + "." + fieldName == localFieldName)
+                    {
+                        a.Invoke(localFieldName, value);
+                    }
                 }
             };
         }
@@ -876,7 +891,7 @@ namespace AutoFormGenerator
 
                     TimePickerField.TimePicker.SelectedTimeChanged += (sender, args) =>
                     {
-                        var CurrentValue = TimePickerField.TimePicker.SelectedTime == null ? TimePickerField.TimePicker.SelectedTime.Value.TimeOfDay.TotalSeconds : 0;
+                        var CurrentValue = TimePickerField.TimePicker.SelectedTime?.TimeOfDay.TotalSeconds ?? 0;
 
                         propInfo.SetValue(Class, CurrentValue);
 
@@ -885,6 +900,46 @@ namespace AutoFormGenerator
                     };
 
                     userControl = TimePickerField;
+                    break;
+                case ObjectTypes.Custom:
+                    if (formField.CustomControl != null && formField.CustomControl.GetInterface(typeof(Interfaces.ICustomControl).FullName) != null) 
+                    {
+                        var customControlClass = (Interfaces.ICustomControl)Activator.CreateInstance(formField.CustomControl);
+                        if (!(customControlClass is UserControl customControl))
+                        {
+                            break;
+                        }
+
+                        var customControlBase = new UserControls.Controls.CustomControlBase(displayValue)
+                        {
+                            Width = controlWidth,
+                            Height = controlHeight,
+                            DisplayNameTextBlock = {Width = displayNameWidth}
+                        };
+
+                        customControl.Width = valueWidth;
+                        customControlClass.SetValue(value);
+
+                        if (formField.Required)
+                        {
+                            customControlBase.DisplayNameTextBlock.ToolTip = "This is a Required Field";
+                        }
+
+                        customControlBase.CustomControlCanvas.Children.Add(customControl);
+
+                        customControlClass.OnPropertyFinishedEditing += (name, o) =>
+                        {
+                            OnPropertyFinishedEditing?.Invoke(fieldName, o);
+                        };
+
+                        customControlClass.OnPropertyModified += (name, o) =>
+                        {
+                            propInfo.SetValue(Class, o);
+                            OnPropertyModified?.Invoke(fieldName, o);
+                        };
+
+                        userControl = customControlBase;
+                    }
                     break;
             }
 

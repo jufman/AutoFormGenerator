@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="Events\ChangeEvents.cs" />
     <Compile Include="Events\ViladateEvents.cs" />
+    <Compile Include="Interfaces\ICustomControl.cs" />
     <Compile Include="Logic.cs" />
     <Compile Include="Object\FormClass.cs" />
     <Compile Include="Object\FormDropdownItem.cs" />
@@ -73,6 +74,9 @@
     </Compile>
     <Compile Include="UserControls\Controls\ColourPickerField.xaml.cs">
       <DependentUpon>ColourPickerField.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\Controls\CustomControlBase.xaml.cs">
+      <DependentUpon>CustomControlBase.xaml</DependentUpon>
     </Compile>
     <Compile Include="UserControls\Controls\DoubleField.xaml.cs">
       <DependentUpon>DoubleField.xaml</DependentUpon>
@@ -130,6 +134,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UserControls\Controls\ColourPickerField.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\Controls\CustomControlBase.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

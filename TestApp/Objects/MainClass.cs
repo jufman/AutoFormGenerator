@@ -7,6 +7,7 @@ using AutoFormGenerator.Object;
 
 namespace TestApp.Objects
 {
+    [FormClass(FormValueWidth = 200)]
     public class MainClass : ExtendClass
     {
         [FormField]
@@ -19,6 +20,12 @@ namespace TestApp.Objects
         public int TestInt { get; set; }
         [FormField]
         public double TestDouble { get; set; }
+        [FormField]
+        public float TestFloat { get; set; }
+
+        [FormField(ObjectTypeName = ObjectTypes.Custom, CustomControl = typeof(Controls.CustomControl))]
+        public float Slider { get; set; } = 0.5f;
+
 
         [FormField(ObjectTypeName = ObjectTypes.TimePicker)]
         public double TestDoubleTime { get; set; } = 300;

@@ -1,4 +1,5 @@
 ﻿using System;
+using AutoFormGenerator.Events;
 
 namespace AutoFormGenerator.Object
 {
@@ -13,7 +14,9 @@ namespace AutoFormGenerator.Object
         public int Order { get; set; } = 999;
 
         public bool CanEdit { get; set; } = true;
-        
+
+        public Type CustomControl { get; set; }
+
         public Type DropDownClass { get; set; }
         public Type NestedClassType { get; set; } = null;
         public Type NestedListClassType { get; set; } = null;
@@ -57,6 +60,7 @@ namespace AutoFormGenerator.Object
         SpecialDropdown,
         FolderBrowser,
         TimePicker,
-        Default
+        Default,
+        Custom
     }
 }
