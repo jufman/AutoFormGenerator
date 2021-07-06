@@ -467,12 +467,19 @@ namespace AutoFormGenerator
             var displayValue = string.Empty;
             FormField formField = null;
 
-            controlWidth = (displayNameWidth + valueWidth) + 50;
-            controlHeight = 40;
+            
 
             formField = (FormField) propInfo.GetCustomAttributes(typeof(FormField), true).FirstOrDefault();
 
             displayValue = propInfo.Name;
+
+            if (!double.IsNaN(formField.ControlWidth))
+            {
+                valueWidth = formField.ControlWidth;
+            }
+
+            controlWidth = (displayNameWidth + valueWidth) + 50;
+            controlHeight = 40;
 
             if (formField.DisplayName != string.Empty)
             {

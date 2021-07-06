@@ -7,10 +7,10 @@ using AutoFormGenerator.Object;
 
 namespace TestApp.Objects
 {
-    [FormClass(FormValueWidth = 200)]
+    [FormClass]
     public class MainClass : ExtendClass
     {
-        [FormField]
+        [FormField(ControlWidth = 150)]
         public string TestString { get; set; }
 
         [FormField] 

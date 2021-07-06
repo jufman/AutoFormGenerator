@@ -13,6 +13,8 @@ namespace AutoFormGenerator.Object
         public bool Required { get; set; } = false;
         public int Order { get; set; } = 999;
 
+        public double ControlWidth { get; set; } = Double.NaN;
+
         public bool CanEdit { get; set; } = true;
 
         public Type CustomControl { get; set; }
