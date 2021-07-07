@@ -10,7 +10,7 @@ namespace TestApp.Objects
     [FormClass]
     public class MainClass : ExtendClass
     {
-        [FormField(ControlWidth = 150)]
+        [FormField]
         public string TestString { get; set; }
 
         [FormField] 
@@ -37,7 +37,10 @@ namespace TestApp.Objects
         public string TestDropDown { get; set; }
 
         [FormField(Type = Types.NestedSettings)]
-        public NestedClass NestedClass { get; set; } 
+        public NestedClass NestedClass { get; set; }
+
+        [FormField(Type = Types.NestedSettings)]
+        public TestClass TestClass { get; set; }
 
     }
 }

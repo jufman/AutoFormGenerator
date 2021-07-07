@@ -8,5 +8,7 @@ namespace AutoFormGenerator.Object
         public string DisplayName { get; set; } = string.Empty;
 
         public double FormValueWidth { get; set; } = -1;
+
+        public bool WindthOveride { get; set; }
     }
 }

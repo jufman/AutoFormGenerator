@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Media;
 using AutoFormGenerator.Object;
 using AutoFormGenerator.UserControls.Controls;
 using MaterialDesignColors;
 using MaterialDesignThemes.Wpf;
+using UserControl = System.Windows.Controls.UserControl;
 
 namespace AutoFormGenerator
 {
@@ -387,6 +390,11 @@ namespace AutoFormGenerator
                 {
                     valueWidth = formClass.FormValueWidth;
                 }
+
+                if (formClass.WindthOveride)
+                {
+                    displayNameWidth = Double.NaN;
+                }
             }
 
             var PropInfoSorterClasses = SortedControls.OrderBy(a => a.Order).ToList();
@@ -464,10 +472,10 @@ namespace AutoFormGenerator
             double controlWidth = 0;
             double controlHeight = 0;
 
+            var FixedWidth = true;
+
             var displayValue = string.Empty;
             FormField formField = null;
-
-            
 
             formField = (FormField) propInfo.GetCustomAttributes(typeof(FormField), true).FirstOrDefault();
 
@@ -476,6 +484,11 @@ namespace AutoFormGenerator
             if (!double.IsNaN(formField.ControlWidth))
             {
                 valueWidth = formField.ControlWidth;
+            }
+
+            if (double.IsNaN(displayNameWidth))
+            {
+                FixedWidth = false;
             }
 
             controlWidth = (displayNameWidth + valueWidth) + 50;
@@ -515,37 +528,22 @@ namespace AutoFormGenerator
                         Width = controlWidth,
                         Height = controlHeight
                     };
-                    stringField.DisplayNameTextBlock.Width = displayNameWidth;
-                    stringField.ValueTextBox.Width = valueWidth;
-                    if (!formField.CanEdit)
-                    {
-                        stringField.ValueTextBox.IsEnabled = false;
-                    }
+
+                    stringField.BuildDisplay(formField, propInfo, Class, FixedWidth, valueWidth, displayNameWidth);
 
                     if (formField.Required)
                     {
-                        stringField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
                         OnValidate += stringField.Validate;
                     }
 
-                    if (formField.ToolTip != string.Empty)
+                    stringField.OnPropertyModified += s =>
                     {
-                        stringField.ValueTextBox.ToolTip = formField.ToolTip;
-                    }
-
-                    stringField.ValueTextBox.TextChanged += (sen, e) =>
-                    {
-                        propInfo.SetValue(Class, stringField.ValueTextBox.Text);
-
-                        OnPropertyModified?.Invoke(fieldName, stringField.ValueTextBox.Text);
+                        OnPropertyModified?.Invoke(fieldName, s);
                     };
 
-                    stringField.ValueTextBox.LostKeyboardFocus += (sender, args) =>
+                    stringField.OnPropertyFinishedEditing += s =>
                     {
-                        if (stringField.HasUpdated)
-                        {
-                            OnPropertyFinishedEditing?.Invoke(fieldName, stringField.ValueTextBox.Text);
-                        }
+                        OnPropertyFinishedEditing?.Invoke(fieldName, s);
                     };
 
                     userControl = stringField;
@@ -556,7 +554,16 @@ namespace AutoFormGenerator
                         Width = controlWidth,
                         Height = controlHeight
                     };
-                    passwordField.DisplayNameTextBlock.Width = displayNameWidth;
+
+                    if (FixedWidth)
+                    {
+                        passwordField.DisplayNameTextBlock.Width = displayNameWidth;
+                    }
+                    else
+                    {
+                        passwordField.Margin = new Thickness(0, 0, 30, 0);
+                    }
+
                     passwordField.ValuePasswordBox.Width = valueWidth;
                     if (!formField.CanEdit)
                     {
@@ -597,7 +604,16 @@ namespace AutoFormGenerator
                         Width = controlWidth,
                         Height = controlHeight
                     };
-                    doubleField.DisplayNameTextBlock.Width = displayNameWidth;
+
+                    if (FixedWidth)
+                    {
+                        doubleField.DisplayNameTextBlock.Width = displayNameWidth;
+                    }
+                    else
+                    {
+                        doubleField.Margin = new Thickness(0, 0, 30, 0);
+                    }
+
                     doubleField.ValueTextBox.Width = valueWidth;
                     if (!formField.CanEdit)
                     {
@@ -640,7 +656,16 @@ namespace AutoFormGenerator
                         Width = controlWidth,
                         Height = controlHeight
                     };
-                    intField.DisplayNameTextBlock.Width = displayNameWidth;
+
+                    if (FixedWidth)
+                    {
+                        intField.DisplayNameTextBlock.Width = displayNameWidth;
+                    }
+                    else
+                    {
+                        intField.Margin = new Thickness(0, 0, 30, 0);
+                    }
+
                     intField.ValueTextBox.Width = valueWidth;
                     if (!formField.CanEdit)
                     {
@@ -683,7 +708,16 @@ namespace AutoFormGenerator
                         Width = controlWidth,
                         Height = controlHeight
                     };
-                    floatField.DisplayNameTextBlock.Width = displayNameWidth;
+
+                    if (FixedWidth)
+                    {
+                        floatField.DisplayNameTextBlock.Width = displayNameWidth;
+                    }
+                    else
+                    {
+                        floatField.Margin = new Thickness(0, 0, 30, 0);
+                    }
+
                     floatField.ValueTextBox.Width = valueWidth;
                     if (!formField.CanEdit)
                     {
@@ -726,7 +760,17 @@ namespace AutoFormGenerator
                         Width = controlWidth,
                         Height = controlHeight
                     };
-                    booleanField.DisplayNameTextBlock.Width = displayNameWidth;
+
+                    if (FixedWidth)
+                    {
+                        booleanField.DisplayNameTextBlock.Width = displayNameWidth;
+                    }
+                    else
+                    {
+                        booleanField.Margin = new Thickness(0, 0, 30, 0);
+                    }
+
+                    //booleanField.ValueCheckBox.Width = valueWidth;
                     if (!formField.CanEdit)
                     {
                         booleanField.ValueCheckBox.IsEnabled = false;
@@ -757,35 +801,6 @@ namespace AutoFormGenerator
                     };
                     userControl = booleanField;
                     break;
-                /*
-                case ObjectTypes.ColourPicker:
-                    var colourPickerField = new ColourPickerField(displayValue, (string)value)
-                    {
-                        Width = controlWidth,
-                        Height = controlHeight
-                    };
-                    colourPickerField.DisplayNameTextBlock.Width = displayNameWidth;
-                    if (!formField.CanEdit)
-                    {
-                        colourPickerField.ValueColourPicker.IsEnabled = false;
-                    }
-                    if (formField.Required)
-                    {
-                        colourPickerField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
-                        OnValidate += colourPickerField.Validate;
-                    }
-                    if (formField.ToolTip != string.Empty)
-                    {
-                        colourPickerField.ValueColourPicker.ToolTip = formField.ToolTip;
-                    }
-                    colourPickerField.ValueColourPicker.SelectedColorChanged += (sen, e) =>
-                    {
-                        propInfo.SetValue(Class, colourPickerField.ValueColourPicker.SelectedColor.ToString());
-                        OnPropertyModified?.Invoke(fieldName, colourPickerField.ValueColourPicker.SelectedColor.ToString());
-                    };
-                    userControl = colourPickerField;
-                    break;
-                */
                 case ObjectTypes.ObjectDropdown:
                     var dropdownField = new DropdownField(displayValue, BuildDropdownItems(formField.DropDownClass),
                         (string) value)
@@ -793,7 +808,16 @@ namespace AutoFormGenerator
                         Width = controlWidth,
                         Height = controlHeight
                     };
-                    dropdownField.DisplayNameTextBlock.Width = displayNameWidth;
+
+                    if (FixedWidth)
+                    {
+                        dropdownField.DisplayNameTextBlock.Width = displayNameWidth;
+                    }
+                    else
+                    {
+                        dropdownField.Margin = new Thickness(0, 0, 30, 0);
+                    }
+
                     dropdownField.SelectComboBox.Width = valueWidth;
                     if (!formField.CanEdit)
                     {
@@ -820,7 +844,16 @@ namespace AutoFormGenerator
                         Width = controlWidth,
                         Height = controlHeight
                     };
-                    specialDropdown.DisplayNameTextBlock.Width = displayNameWidth;
+
+                    if (FixedWidth)
+                    {
+                        specialDropdown.DisplayNameTextBlock.Width = displayNameWidth;
+                    }
+                    else
+                    {
+                        specialDropdown.Margin = new Thickness(0, 0, 30, 0);
+                    }
+
                     specialDropdown.SelectComboBox.Width = valueWidth;
                     if (formField.ToolTip != string.Empty)
                     {
@@ -856,7 +889,16 @@ namespace AutoFormGenerator
                         Width = controlWidth,
                         Height = controlHeight
                     };
-                    folderStringField.DisplayNameTextBlock.Width = displayNameWidth;
+
+                    if (FixedWidth)
+                    {
+                        folderStringField.DisplayNameTextBlock.Width = displayNameWidth;
+                    }
+                    else
+                    {
+                        folderStringField.Margin = new Thickness(0, 0, 30, 0);
+                    }
+
                     folderStringField.ValueTextBox.Width = valueWidth;
                     if (formField.Required)
                     {
@@ -884,7 +926,16 @@ namespace AutoFormGenerator
                         Width = controlWidth,
                         Height = controlHeight
                     };
-                    TimePickerField.DisplayNameTextBlock.Width = displayNameWidth;
+
+                    if (FixedWidth)
+                    {
+                        TimePickerField.DisplayNameTextBlock.Width = displayNameWidth;
+                    }
+                    else
+                    {
+                        TimePickerField.Margin = new Thickness(0, 0, 30, 0);
+                    }
+
                     TimePickerField.TimePicker.Width = valueWidth;
                     if (formField.Required)
                     {
@@ -920,9 +971,17 @@ namespace AutoFormGenerator
                         var customControlBase = new UserControls.Controls.CustomControlBase(displayValue)
                         {
                             Width = controlWidth,
-                            Height = controlHeight,
-                            DisplayNameTextBlock = {Width = displayNameWidth}
+                            Height = controlHeight
                         };
+
+                        if (FixedWidth)
+                        {
+                            customControlBase.DisplayNameTextBlock.Width = displayNameWidth;
+                        }
+                        else
+                        {
+                            customControlBase.Margin = new Thickness(0, 0, 30, 0);
+                        }
 
                         customControl.Width = valueWidth;
                         customControlClass.SetValue(value);
