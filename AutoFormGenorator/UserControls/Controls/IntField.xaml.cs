@@ -1,7 +1,9 @@
 ﻿using System.Text.RegularExpressions;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using AutoFormGenerator.Object;
 
 namespace AutoFormGenerator.UserControls.Controls
 {
@@ -13,12 +15,15 @@ namespace AutoFormGenerator.UserControls.Controls
         private string HoldValue = "";
         public bool HasUpdated { get; set; }
 
-        public IntField(string DisplayValue, int Value)
+        public delegate void PropertyModified(int Value);
+        public event PropertyModified OnPropertyModified;
+
+        public delegate void PropertyFinishedEditing(int Value);
+        public event PropertyFinishedEditing OnPropertyFinishedEditing;
+
+        public IntField()
         {
             InitializeComponent();
-
-            DisplayNameTextBlock.Text = DisplayValue.ToString();
-            ValueTextBox.Text = Value.ToString();
 
             ValueTextBox.GotKeyboardFocus += (sender, args) =>
             {
@@ -39,6 +44,57 @@ namespace AutoFormGenerator.UserControls.Controls
         {
             var textBox = sender as TextBox;
             e.Handled = Regex.IsMatch(e.Text, "[^0-9]+");
+        }
+
+        public void BuildDisplay(FormControlSettings formControlSettings)
+        {
+            Width = formControlSettings.ControlWidth;
+            Height = formControlSettings.ControlHeight;
+
+            DisplayNameTextBlock.Text = formControlSettings.DisplayValue;
+            ValueTextBox.Text = formControlSettings.Value.ToString();
+
+            if (formControlSettings.FixedWidth)
+            {
+                DisplayNameTextBlock.Width = formControlSettings.DisplayNameWidth;
+            }
+            else
+            {
+                Margin = new Thickness(0, 0, 30, 0);
+            }
+
+            ValueTextBox.Width = formControlSettings.ValueWidth;
+            if (!formControlSettings.CanEdit)
+            {
+                ValueTextBox.IsEnabled = false;
+            }
+
+            if (formControlSettings.Required)
+            {
+                DisplayNameTextBlock.ToolTip = formControlSettings.RequiredText;
+            }
+
+            if (formControlSettings.ToolTip != string.Empty)
+            {
+                ValueTextBox.ToolTip = formControlSettings.ToolTip;
+            }
+
+            ValueTextBox.TextChanged += (sen, e) =>
+            {
+                if (int.TryParse(ValueTextBox.Text, out var intValue))
+                {
+                    formControlSettings.SetValue(intValue);
+                    OnPropertyModified?.Invoke(intValue);
+                }
+            };
+
+            ValueTextBox.LostKeyboardFocus += (sender, args) =>
+            {
+                if (HasUpdated && int.TryParse(ValueTextBox.Text, out var intValue))
+                {
+                    OnPropertyFinishedEditing?.Invoke(intValue);
+                }
+            };
         }
 
         public bool Validate()

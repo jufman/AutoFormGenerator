@@ -401,7 +401,16 @@ namespace AutoFormGenerator
 
             foreach (var propInfo in PropInfoSorterClasses)
             {
-                var userControl = HandleUserControl(propInfo, Class, displayNameWidth, valueWidth, classType);
+                var formControlSettings = new FormControlSettings
+                {
+                    DisplayNameWidth = displayNameWidth,
+                    ValueWidth = valueWidth,
+                    PropInfo = propInfo.PropertyInfo,
+                    Class = Class,
+                    ClassType = classType
+                };
+
+                var userControl = HandleUserControl(formControlSettings);
                 if (userControl != null)
                 {
                     userControls.Add(userControl);
@@ -416,15 +425,13 @@ namespace AutoFormGenerator
             return userControls;
         }
 
-        private UserControl HandleUserControl(PropInfoSorterClass propInfo, object Class, double displayNameWidth, double valueWidth, Type classType)
+        private UserControl HandleUserControl(FormControlSettings formControlSettings)
         {
-            var _propInfo = propInfo.PropertyInfo;
-
-            var control = BuildControl(_propInfo, Class, classType, displayNameWidth, valueWidth);
+            var control = BuildControl(formControlSettings);
 
             if (control != null)
             {
-                var FieldConditions = GetFieldConditions(classType, propInfo.PropertyInfo.Name);
+                var FieldConditions = GetFieldConditions(formControlSettings.ClassType, formControlSettings.PropInfo.Name);
 
                 FieldConditions.ForEach(info =>
                 {
@@ -432,7 +439,7 @@ namespace AutoFormGenerator
 
                     OnPropertyModified += (name, value) =>
                     {
-                        HandleFieldConditions(FieldCondition, classType, name, value, control);
+                        HandleFieldConditions(FieldCondition, formControlSettings.ClassType, name, value, control);
                     };
                 });
 
@@ -461,426 +468,132 @@ namespace AutoFormGenerator
             }
         }
 
-        private UserControl BuildControl(PropertyInfo propInfo, object Class, Type classType, double displayNameWidth = 90, double valueWidth = 100)
+        private UserControl BuildControl(FormControlSettings formControlSettings)
         {
-            var propertyType = string.Empty;
             UserControl userControl = null;
 
-            var fieldName = string.Empty;
-            object value = string.Empty;
-
-            double controlWidth = 0;
-            double controlHeight = 0;
-
-            var FixedWidth = true;
-
-            var displayValue = string.Empty;
-            FormField formField = null;
-
-            formField = (FormField) propInfo.GetCustomAttributes(typeof(FormField), true).FirstOrDefault();
-
-            displayValue = propInfo.Name;
-
-            if (!double.IsNaN(formField.ControlWidth))
-            {
-                valueWidth = formField.ControlWidth;
-            }
-
-            if (double.IsNaN(displayNameWidth))
-            {
-                FixedWidth = false;
-            }
-
-            controlWidth = (displayNameWidth + valueWidth) + 50;
-            controlHeight = 40;
-
-            if (formField.DisplayName != string.Empty)
-            {
-                displayValue = formField.DisplayName;
-            }
-
-            if (formField.Required)
-            {
-                displayValue += "*";
-            }
-
-            propertyType = propInfo.PropertyType.Name;
-
-            if (formField.ObjectTypeName != ObjectTypes.Default)
-            {
-                propertyType = formField.ObjectTypeName.ToString();
-            }
-
-            fieldName = classType.FullName + "." + propInfo.Name;
-
-            value = propInfo.GetValue(Class);
-
-            if (!Enum.IsDefined(typeof(ObjectTypes), propertyType))
+            if (!Enum.IsDefined(typeof(ObjectTypes), formControlSettings.PropertyType))
             {
                 return userControl;
             }
 
-            switch (Enum.Parse(typeof(ObjectTypes), propertyType))
+            switch (Enum.Parse(typeof(ObjectTypes), formControlSettings.PropertyType))
             {
                 case ObjectTypes.String:
-                    var stringField = new StringField(displayValue, (string) value)
-                    {
-                        Width = controlWidth,
-                        Height = controlHeight
-                    };
+                    var stringField = new StringField();
 
-                    stringField.BuildDisplay(formField, propInfo, Class, FixedWidth, valueWidth, displayNameWidth);
+                    stringField.BuildDisplay(formControlSettings);
 
-                    if (formField.Required)
+                    if (formControlSettings.Required)
                     {
                         OnValidate += stringField.Validate;
                     }
 
-                    stringField.OnPropertyModified += s =>
-                    {
-                        OnPropertyModified?.Invoke(fieldName, s);
-                    };
-
-                    stringField.OnPropertyFinishedEditing += s =>
-                    {
-                        OnPropertyFinishedEditing?.Invoke(fieldName, s);
-                    };
+                    stringField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    stringField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
                     userControl = stringField;
                     break;
                 case ObjectTypes.Password:
-                    var passwordField = new PasswordField(displayValue, (string) value)
-                    {
-                        Width = controlWidth,
-                        Height = controlHeight
-                    };
+                    var passwordField = new PasswordField();
 
-                    if (FixedWidth)
-                    {
-                        passwordField.DisplayNameTextBlock.Width = displayNameWidth;
-                    }
-                    else
-                    {
-                        passwordField.Margin = new Thickness(0, 0, 30, 0);
-                    }
+                    passwordField.BuildDisplay(formControlSettings);
 
-                    passwordField.ValuePasswordBox.Width = valueWidth;
-                    if (!formField.CanEdit)
+                    if (formControlSettings.Required)
                     {
-                        passwordField.ValuePasswordBox.IsEnabled = false;
-                    }
-
-                    if (formField.Required)
-                    {
-                        passwordField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
                         OnValidate += passwordField.Validate;
                     }
 
-                    if (formField.ToolTip != string.Empty)
-                    {
-                        passwordField.ValuePasswordBox.ToolTip = formField.ToolTip;
-                    }
-
-                    passwordField.ValuePasswordBox.PasswordChanged += (sen, e) =>
-                    {
-                        propInfo.SetValue(Class, passwordField.ValuePasswordBox.Password);
-
-                        OnPropertyModified?.Invoke(fieldName, passwordField.ValuePasswordBox.Password);
-                    };
-
-                    passwordField.ValuePasswordBox.LostKeyboardFocus += (sender, args) =>
-                    {
-                        if (passwordField.HasUpdated)
-                        {
-                            OnPropertyFinishedEditing?.Invoke(fieldName, passwordField.ValuePasswordBox.Password);
-                        }
-                    };
+                    passwordField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    passwordField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
                     userControl = passwordField;
                     break;
                 case ObjectTypes.Double:
-                    var doubleField = new DoubleField(displayValue, (Double) value)
-                    {
-                        Width = controlWidth,
-                        Height = controlHeight
-                    };
+                    var doubleField = new DoubleField();
 
-                    if (FixedWidth)
-                    {
-                        doubleField.DisplayNameTextBlock.Width = displayNameWidth;
-                    }
-                    else
-                    {
-                        doubleField.Margin = new Thickness(0, 0, 30, 0);
-                    }
+                    doubleField.BuildDisplay(formControlSettings);
 
-                    doubleField.ValueTextBox.Width = valueWidth;
-                    if (!formField.CanEdit)
+                    if (formControlSettings.Required)
                     {
-                        doubleField.ValueTextBox.IsEnabled = false;
-                    }
-
-                    if (formField.Required)
-                    {
-                        doubleField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
                         OnValidate += doubleField.Validate;
                     }
 
-                    if (formField.ToolTip != string.Empty)
-                    {
-                        doubleField.ValueTextBox.ToolTip = formField.ToolTip;
-                    }
-
-                    doubleField.ValueTextBox.TextChanged += (sen, e) =>
-                    {
-                        if (double.TryParse(doubleField.ValueTextBox.Text, out var doubleValue))
-                        {
-                            propInfo.SetValue(Class, doubleValue);
-                            OnPropertyModified?.Invoke(fieldName, doubleValue);
-                        }
-                    };
-
-                    doubleField.ValueTextBox.LostKeyboardFocus += (sender, args) =>
-                    {
-                        if (doubleField.HasUpdated && double.TryParse(doubleField.ValueTextBox.Text, out var doubleValue))
-                        {
-                            OnPropertyFinishedEditing?.Invoke(fieldName, doubleValue);
-                        }
-                    };
+                    doubleField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    doubleField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
                     userControl = doubleField;
                     break;
                 case ObjectTypes.Int32:
-                    var intField = new IntField(displayValue, (int) value)
-                    {
-                        Width = controlWidth,
-                        Height = controlHeight
-                    };
+                    var intField = new IntField();
 
-                    if (FixedWidth)
-                    {
-                        intField.DisplayNameTextBlock.Width = displayNameWidth;
-                    }
-                    else
-                    {
-                        intField.Margin = new Thickness(0, 0, 30, 0);
-                    }
+                    intField.BuildDisplay(formControlSettings);
 
-                    intField.ValueTextBox.Width = valueWidth;
-                    if (!formField.CanEdit)
+                    if (formControlSettings.Required)
                     {
-                        intField.ValueTextBox.IsEnabled = false;
-                    }
-
-                    if (formField.Required)
-                    {
-                        intField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
                         OnValidate += intField.Validate;
                     }
 
-                    if (formField.ToolTip != string.Empty)
-                    {
-                        intField.ValueTextBox.ToolTip = formField.ToolTip;
-                    }
-
-                    intField.ValueTextBox.TextChanged += (sen, e) =>
-                    {
-                        if (int.TryParse(intField.ValueTextBox.Text, out var intValue))
-                        {
-                            propInfo.SetValue(Class, intValue);
-                            OnPropertyModified?.Invoke(fieldName, intValue);
-                        }
-                    };
-
-                    intField.ValueTextBox.LostKeyboardFocus += (sender, args) =>
-                    {
-                        if (intField.HasUpdated && int.TryParse(intField.ValueTextBox.Text, out var intValue))
-                        {
-                            OnPropertyFinishedEditing?.Invoke(fieldName, intValue);
-                        }
-                    };
+                    intField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    intField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
                     userControl = intField;
                     break;
                 case ObjectTypes.Single:
-                    var floatField = new FloatField(displayValue, (float) value)
-                    {
-                        Width = controlWidth,
-                        Height = controlHeight
-                    };
+                    var floatField = new FloatField();
 
-                    if (FixedWidth)
-                    {
-                        floatField.DisplayNameTextBlock.Width = displayNameWidth;
-                    }
-                    else
-                    {
-                        floatField.Margin = new Thickness(0, 0, 30, 0);
-                    }
+                    floatField.BuildDisplay(formControlSettings);
 
-                    floatField.ValueTextBox.Width = valueWidth;
-                    if (!formField.CanEdit)
+                    if (formControlSettings.Required)
                     {
-                        floatField.ValueTextBox.IsEnabled = false;
-                    }
-
-                    if (formField.Required)
-                    {
-                        floatField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
                         OnValidate += floatField.Validate;
                     }
 
-                    if (formField.ToolTip != string.Empty)
-                    {
-                        floatField.ValueTextBox.ToolTip = formField.ToolTip;
-                    }
-
-                    floatField.ValueTextBox.TextChanged += (sen, e) =>
-                    {
-                        if (float.TryParse(floatField.ValueTextBox.Text, out var floatValue))
-                        {
-                            propInfo.SetValue(Class, floatValue);
-                            OnPropertyModified?.Invoke(fieldName, floatValue);
-                        }
-                    };
-
-                    floatField.ValueTextBox.LostKeyboardFocus += (sender, args) =>
-                    {
-                        if (floatField.HasUpdated && float.TryParse(floatField.ValueTextBox.Text, out var floatValue))
-                        {
-                            OnPropertyFinishedEditing?.Invoke(fieldName, floatValue);
-                        }
-                    };
+                    floatField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    floatField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
                     userControl = floatField;
                     break;
                 case ObjectTypes.Boolean:
-                    var booleanField = new BooleanField(displayValue, (bool) value)
-                    {
-                        Width = controlWidth,
-                        Height = controlHeight
-                    };
+                    var booleanField = new BooleanField();
 
-                    if (FixedWidth)
-                    {
-                        booleanField.DisplayNameTextBlock.Width = displayNameWidth;
-                    }
-                    else
-                    {
-                        booleanField.Margin = new Thickness(0, 0, 30, 0);
-                    }
+                    booleanField.BuildDisplay(formControlSettings);
 
-                    //booleanField.ValueCheckBox.Width = valueWidth;
-                    if (!formField.CanEdit)
+                    if (formControlSettings.Required)
                     {
-                        booleanField.ValueCheckBox.IsEnabled = false;
-                    }
-
-                    if (formField.Required)
-                    {
-                        booleanField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
                         OnValidate += booleanField.Validate;
                     }
 
-                    if (formField.ToolTip != string.Empty)
-                    {
-                        booleanField.ValueCheckBox.ToolTip = formField.ToolTip;
-                    }
+                    booleanField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    booleanField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
-                    booleanField.ValueCheckBox.Checked += (sen, e) =>
-                    {
-                        propInfo.SetValue(Class, booleanField.ValueCheckBox.IsChecked);
-                        OnPropertyModified?.Invoke(fieldName, booleanField.ValueCheckBox.IsChecked);
-                        OnPropertyFinishedEditing?.Invoke(fieldName, booleanField.ValueCheckBox.IsChecked);
-                    };
-                    booleanField.ValueCheckBox.Unchecked += (sen, e) =>
-                    {
-                        propInfo.SetValue(Class, booleanField.ValueCheckBox.IsChecked);
-                        OnPropertyModified?.Invoke(fieldName, booleanField.ValueCheckBox.IsChecked);
-                        OnPropertyFinishedEditing?.Invoke(fieldName, booleanField.ValueCheckBox.IsChecked);
-                    };
                     userControl = booleanField;
                     break;
                 case ObjectTypes.ObjectDropdown:
-                    var dropdownField = new DropdownField(displayValue, BuildDropdownItems(formField.DropDownClass),
-                        (string) value)
-                    {
-                        Width = controlWidth,
-                        Height = controlHeight
-                    };
+                    var dropdownField = new DropdownField();
 
-                    if (FixedWidth)
-                    {
-                        dropdownField.DisplayNameTextBlock.Width = displayNameWidth;
-                    }
-                    else
-                    {
-                        dropdownField.Margin = new Thickness(0, 0, 30, 0);
-                    }
+                    dropdownField.BuildDisplay(formControlSettings, BuildDropdownItems(formControlSettings.FormField.DropDownClass));
 
-                    dropdownField.SelectComboBox.Width = valueWidth;
-                    if (!formField.CanEdit)
-                    {
-                        dropdownField.SelectComboBox.IsEnabled = false;
-                    }
+                    dropdownField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    dropdownField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
-                    if (formField.ToolTip != string.Empty)
-                    {
-                        dropdownField.SelectComboBox.ToolTip = formField.ToolTip;
-                    }
-
-                    dropdownField.SelectComboBox.SelectionChanged += (sen, e) =>
-                    {
-                        var selectedItem = (ComboBoxItem) dropdownField.SelectComboBox.SelectedItem;
-                        propInfo.SetValue(Class, selectedItem.Tag.ToString());
-                        OnPropertyModified?.Invoke(fieldName, selectedItem.Tag.ToString());
-                        OnPropertyFinishedEditing?.Invoke(fieldName, selectedItem.Tag.ToString());
-                    };
                     userControl = dropdownField;
                     break;
                 case ObjectTypes.SpecialDropdown:
-                    var specialDropdown = new SpecialDropdownField(displayValue)
-                    {
-                        Width = controlWidth,
-                        Height = controlHeight
-                    };
+                    var specialDropdown = new SpecialDropdownField();
 
-                    if (FixedWidth)
-                    {
-                        specialDropdown.DisplayNameTextBlock.Width = displayNameWidth;
-                    }
-                    else
-                    {
-                        specialDropdown.Margin = new Thickness(0, 0, 30, 0);
-                    }
-
-                    specialDropdown.SelectComboBox.Width = valueWidth;
-                    if (formField.ToolTip != string.Empty)
-                    {
-                        specialDropdown.SelectComboBox.ToolTip = formField.ToolTip;
-                    }
+                    specialDropdown.BuildDisplay(formControlSettings);
 
                     OnAddSpecialDropdownItems += (Name, Items) =>
                     {
-                        if (Name == fieldName)
+                        if (Name == formControlSettings.FieldName)
                         {
-                            specialDropdown.AddDropdownItems(Items, value);
+                            specialDropdown.AddDropdownItems(Items, formControlSettings.Value);
                         }
                     };
 
-                    OnSpecialDropdownDisplaying?.Invoke(fieldName);
+                    OnSpecialDropdownDisplaying?.Invoke(formControlSettings.FieldName);
 
-                    specialDropdown.SelectComboBox.SelectionChanged += (sen, e) =>
-                    {
-                        var selectedItem = (ComboBoxItem) specialDropdown.SelectComboBox.SelectedItem;
-                        if (selectedItem != null)
-                        {
-                            var DropdownItem = (FormDropdownItem) selectedItem.Content;
-                            propInfo.SetValue(Class, DropdownItem.Value);
-                            OnPropertyModified?.Invoke(fieldName, DropdownItem.Value);
-                            OnPropertyFinishedEditing?.Invoke(fieldName, DropdownItem.Value);
-                        }
-                    };
                     userControl = specialDropdown;
                     break;
                 case ObjectTypes.FolderBrowser:

@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using AutoFormGenerator.Object;
 
 namespace AutoFormGenerator.UserControls.Controls
 {
@@ -10,11 +11,15 @@ namespace AutoFormGenerator.UserControls.Controls
     /// </summary>
     public partial class SpecialDropdownField : UserControl
     {
-        public SpecialDropdownField(string DisplayValue)
+        public delegate void PropertyModified(object Value);
+        public event PropertyModified OnPropertyModified;
+
+        public delegate void PropertyFinishedEditing(object Value);
+        public event PropertyFinishedEditing OnPropertyFinishedEditing;
+
+        public SpecialDropdownField()
         {
             InitializeComponent();
-
-            DisplayNameTextBlock.Text = DisplayValue.ToString();
         }
 
         public void AddDropdownItems(List<Object.FormDropdownItem> DropdownItems, object value)
@@ -41,6 +46,52 @@ namespace AutoFormGenerator.UserControls.Controls
 
                 SelectComboBox.Items.Add(BoxItem);
             });
+        }
+
+        public void BuildDisplay(FormControlSettings formControlSettings)
+        {
+            Width = formControlSettings.ControlWidth;
+            Height = formControlSettings.ControlHeight;
+
+            DisplayNameTextBlock.Text = formControlSettings.DisplayValue;
+
+            if (formControlSettings.FixedWidth)
+            {
+                DisplayNameTextBlock.Width = formControlSettings.DisplayNameWidth;
+            }
+            else
+            {
+                Margin = new Thickness(0, 0, 30, 0);
+            }
+
+            SelectComboBox.Width = formControlSettings.ValueWidth;
+
+            if (!formControlSettings.CanEdit)
+            {
+                SelectComboBox.IsEnabled = false;
+            }
+
+            if (formControlSettings.Required)
+            {
+                DisplayNameTextBlock.ToolTip = formControlSettings.RequiredText;
+            }
+
+            if (formControlSettings.ToolTip != string.Empty)
+            {
+                SelectComboBox.ToolTip = formControlSettings.ToolTip;
+            }
+
+            SelectComboBox.SelectionChanged += (sen, e) =>
+            {
+                var selectedItem = (ComboBoxItem)SelectComboBox.SelectedItem;
+                if (selectedItem != null)
+                {
+                    var DropdownItem = (FormDropdownItem)selectedItem.Content;
+                    formControlSettings.SetValue(DropdownItem.Value);
+                    OnPropertyModified?.Invoke(DropdownItem.Value);
+                    OnPropertyFinishedEditing?.Invoke(DropdownItem.Value);
+                }
+            };
         }
 
     }

@@ -21,13 +21,9 @@ namespace AutoFormGenerator.UserControls.Controls
         public delegate void PropertyFinishedEditing(string Value);
         public event PropertyFinishedEditing OnPropertyFinishedEditing;
 
-        public StringField(string DisplayName, string Value)
+        public StringField()
         {
             InitializeComponent();
-
-            DisplayNameTextBlock.Text = DisplayName;
-
-            ValueTextBox.Text = Value;
 
             ValueTextBox.GotKeyboardFocus += (sender, args) =>
             {
@@ -44,36 +40,42 @@ namespace AutoFormGenerator.UserControls.Controls
             };
         }
 
-        public void BuildDisplay(FormField formField, PropertyInfo propInfo, object Class, bool FixedWidth, double valueWidth, double displayNameWidth)
+        public void BuildDisplay(FormControlSettings formControlSettings)
         {
-            if (FixedWidth)
+            Width = formControlSettings.ControlWidth;
+            Height = formControlSettings.ControlHeight;
+
+            DisplayNameTextBlock.Text = formControlSettings.DisplayValue;
+            ValueTextBox.Text = formControlSettings.Value.ToString();
+
+            if (formControlSettings.FixedWidth)
             {
-                DisplayNameTextBlock.Width = displayNameWidth;
+                DisplayNameTextBlock.Width = formControlSettings.DisplayNameWidth;
             }
             else
             {
                 Margin = new Thickness(0, 0, 30, 0);
             }
 
-            ValueTextBox.Width = valueWidth;
-            if (!formField.CanEdit)
+            ValueTextBox.Width = formControlSettings.ValueWidth;
+            if (!formControlSettings.CanEdit)
             {
                 ValueTextBox.IsEnabled = false;
             }
 
-            if (formField.Required)
+            if (formControlSettings.Required)
             {
-                DisplayNameTextBlock.ToolTip = "This is a Required Field";
+                DisplayNameTextBlock.ToolTip = formControlSettings.RequiredText;
             }
 
-            if (formField.ToolTip != string.Empty)
+            if (formControlSettings.ToolTip != string.Empty)
             {
-                ValueTextBox.ToolTip = formField.ToolTip;
+                ValueTextBox.ToolTip = formControlSettings.ToolTip;
             }
 
             ValueTextBox.TextChanged += (sen, e) =>
             {
-                propInfo.SetValue(Class, ValueTextBox.Text);
+                formControlSettings.SetValue(ValueTextBox.Text);
 
                 OnPropertyModified?.Invoke(ValueTextBox.Text);
             };

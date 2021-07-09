@@ -63,6 +63,7 @@
     <Compile Include="Interfaces\ICustomControl.cs" />
     <Compile Include="Logic.cs" />
     <Compile Include="Object\FormClass.cs" />
+    <Compile Include="Object\FormControlSettings.cs" />
     <Compile Include="Object\FormDropdownItem.cs" />
     <Compile Include="Object\FormField.cs" />
     <Compile Include="Object\TestClass.cs" />

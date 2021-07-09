@@ -1,5 +1,7 @@
-﻿using System.Windows.Controls;
+﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
+using AutoFormGenerator.Object;
 
 namespace AutoFormGenerator.UserControls.Controls
 {
@@ -12,14 +14,15 @@ namespace AutoFormGenerator.UserControls.Controls
 
         public bool HasUpdated { get; set; }
 
-        public PasswordField(string DisplayName, string Value)
+        public delegate void PropertyModified(string Value);
+        public event PropertyModified OnPropertyModified;
+
+        public delegate void PropertyFinishedEditing(string Value);
+        public event PropertyFinishedEditing OnPropertyFinishedEditing;
+
+        public PasswordField()
         {
             InitializeComponent();
-
-            DisplayNameTextBlock.Text = DisplayName;
-
-            ValuePasswordBox.Password = Value;
-
 
             ValuePasswordBox.GotKeyboardFocus += (sender, args) =>
             {
@@ -32,6 +35,55 @@ namespace AutoFormGenerator.UserControls.Controls
                 if (HoldValue != ValuePasswordBox.Password)
                 {
                     HasUpdated = true;
+                }
+            };
+        }
+
+        public void BuildDisplay(FormControlSettings formControlSettings)
+        {
+            Width = formControlSettings.ControlWidth;
+            Height = formControlSettings.ControlHeight;
+
+            DisplayNameTextBlock.Text = formControlSettings.DisplayValue;
+            ValuePasswordBox.Password = formControlSettings.Value.ToString();
+
+            if (formControlSettings.FixedWidth)
+            {
+                DisplayNameTextBlock.Width = formControlSettings.DisplayNameWidth;
+            }
+            else
+            {
+                Margin = new Thickness(0, 0, 30, 0);
+            }
+
+            ValuePasswordBox.Width = formControlSettings.ValueWidth;
+            if (!formControlSettings.CanEdit)
+            {
+                ValuePasswordBox.IsEnabled = false;
+            }
+
+            if (formControlSettings.Required)
+            {
+                DisplayNameTextBlock.ToolTip = formControlSettings.RequiredText;
+            }
+
+            if (formControlSettings.ToolTip != string.Empty)
+            {
+                ValuePasswordBox.ToolTip = formControlSettings.ToolTip;
+            }
+
+            ValuePasswordBox.PasswordChanged += (sen, e) =>
+            {
+                formControlSettings.SetValue(ValuePasswordBox.Password);
+
+                OnPropertyModified?.Invoke(ValuePasswordBox.Password);
+            };
+
+            ValuePasswordBox.LostKeyboardFocus += (sender, args) =>
+            {
+                if (HasUpdated)
+                {
+                    OnPropertyFinishedEditing?.Invoke(ValuePasswordBox.Password);
                 }
             };
         }
