@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -130,9 +131,13 @@ namespace AutoFormGenerator.UserControls.Controls
             {
                 var item = new MenuItem
                 {
-                    Header = s.Value,
-                    ToolTip = s.ToolTip
+                    Header = s.Value
                 };
+
+                if (s.ToolTip != String.Empty)
+                {
+                    item.ToolTip = s.ToolTip;
+                }
 
                 item.Click += (sender, args) =>
                 {
