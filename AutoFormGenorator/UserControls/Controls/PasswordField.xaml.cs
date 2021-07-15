@@ -45,7 +45,7 @@ namespace AutoFormGenerator.UserControls.Controls
             Height = formControlSettings.ControlHeight;
 
             DisplayNameTextBlock.Text = formControlSettings.DisplayValue;
-            ValuePasswordBox.Password = formControlSettings.Value.ToString();
+            ValuePasswordBox.Password = (string) formControlSettings.Value;
 
             if (formControlSettings.FixedWidth)
             {

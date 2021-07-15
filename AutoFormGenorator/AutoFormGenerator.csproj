@@ -60,13 +60,14 @@
   <ItemGroup>
     <Compile Include="Events\ChangeEvents.cs" />
     <Compile Include="Events\ViladateEvents.cs" />
+    <Compile Include="Helpers.cs" />
     <Compile Include="Interfaces\ICustomControl.cs" />
     <Compile Include="Logic.cs" />
+    <Compile Include="Object\FieldInsert.cs" />
     <Compile Include="Object\FormClass.cs" />
     <Compile Include="Object\FormControlSettings.cs" />
     <Compile Include="Object\FormDropdownItem.cs" />
     <Compile Include="Object\FormField.cs" />
-    <Compile Include="Object\TestClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UserControls\Card.xaml.cs">
       <DependentUpon>Card.xaml</DependentUpon>

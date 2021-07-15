@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using AutoFormGenerator.Object;
+using System.IO;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -11,15 +14,60 @@ namespace AutoFormGenerator.UserControls.Controls
     /// </summary>
     public partial class FolderBrowserField : System.Windows.Controls.UserControl
     {
-        public FolderBrowserField(string DisplayName, string Value)
+
+        public delegate void PropertyModified(object Value);
+        public event PropertyModified OnPropertyModified;
+
+        public delegate void PropertyFinishedEditing(object Value);
+        public event PropertyFinishedEditing OnPropertyFinishedEditing;
+
+        public FolderBrowserField()
         {
             InitializeComponent();
 
-            DisplayNameTextBlock.Text = DisplayName;
-
-            ValueTextBox.Text = Value;
-
             ValueTextBox.ToolTip = "Double Click for Folder Browser";
+        }
+
+        public void BuildDisplay(FormControlSettings formControlSettings)
+        {
+            Width = formControlSettings.ControlWidth;
+            Height = formControlSettings.ControlHeight;
+
+            DisplayNameTextBlock.Text = formControlSettings.DisplayValue;
+
+            if (formControlSettings.FixedWidth)
+            {
+                DisplayNameTextBlock.Width = formControlSettings.DisplayNameWidth;
+            }
+            else
+            {
+                Margin = new Thickness(0, 0, 30, 0);
+            }
+
+            ValueTextBox.Width = formControlSettings.ValueWidth;
+
+            if (!formControlSettings.CanEdit)
+            {
+                ValueTextBox.IsEnabled = false;
+            }
+
+            if (formControlSettings.Required)
+            {
+                DisplayNameTextBlock.ToolTip = formControlSettings.RequiredText;
+            }
+
+            if (formControlSettings.ToolTip != string.Empty)
+            {
+                ValueTextBox.ToolTip = formControlSettings.ToolTip;
+            }
+
+            ValueTextBox.TextChanged += (sen, e) =>
+            {
+                formControlSettings.SetValue(ValueTextBox.Text);
+
+                OnPropertyModified?.Invoke(ValueTextBox.Text);
+                OnPropertyFinishedEditing?.Invoke(ValueTextBox.Text);
+            };
         }
 
         public bool Validate()

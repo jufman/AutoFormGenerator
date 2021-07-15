@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using AutoFormGenerator.Object;
 
 namespace AutoFormGenerator.UserControls.Controls
 {
@@ -20,11 +21,57 @@ namespace AutoFormGenerator.UserControls.Controls
     /// </summary>
     public partial class CustomControlBase : UserControl
     {
-        public CustomControlBase(string DisplayValue)
+        public delegate void PropertyModified(object Value);
+        public event PropertyModified OnPropertyModified;
+
+        public delegate void PropertyFinishedEditing(object Value);
+        public event PropertyFinishedEditing OnPropertyFinishedEditing;
+
+        public CustomControlBase()
         {
             InitializeComponent();
-
-            DisplayNameTextBlock.Text = DisplayValue.ToString();
         }
+
+        public void BuildDisplay(FormControlSettings formControlSettings, Interfaces.ICustomControl customControlClass)
+        {
+            var customControl = (UserControl) customControlClass;
+
+            Width = formControlSettings.ControlWidth;
+            Height = formControlSettings.ControlHeight;
+
+            customControl.Width = formControlSettings.ValueWidth;
+            customControlClass.SetValue(formControlSettings.Value);
+
+
+            DisplayNameTextBlock.Text = formControlSettings.DisplayValue;
+
+            if (formControlSettings.FixedWidth)
+            {
+                DisplayNameTextBlock.Width = formControlSettings.DisplayNameWidth;
+            }
+            else
+            {
+                Margin = new Thickness(0, 0, 30, 0);
+            }
+
+            if (formControlSettings.Required)
+            {
+                DisplayNameTextBlock.ToolTip = formControlSettings.RequiredText;
+            }
+
+            CustomControlCanvas.Children.Add(customControl);
+
+            customControlClass.OnPropertyFinishedEditing += (name, o) =>
+            {
+                OnPropertyFinishedEditing?.Invoke(o);
+            };
+
+            customControlClass.OnPropertyModified += (name, o) =>
+            {
+                formControlSettings.SetValue(o);
+                OnPropertyModified?.Invoke(o);
+            };
+        }
+
     }
 }

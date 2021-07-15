@@ -11,7 +11,7 @@ namespace TestApp.Objects
     public class MainClass : ExtendClass
     {
         [FormField]
-        public string TestString { get; set; }
+        public string TestString { get; set; } = "";
 
         [FormField] 
         public bool TestBool { get; set; }
@@ -29,9 +29,10 @@ namespace TestApp.Objects
 
         [FormField(ObjectTypeName = ObjectTypes.TimePicker)]
         public double TestDoubleTime { get; set; } = 300;
+
         [FormField(ObjectTypeName = ObjectTypes.Password)]
         [FieldCondition(Field = "TestBool", Operator = Operators.Equals, Value = true)]
-        public string TestPassword { get; set; }
+        public string TestPassword { get; set; } = "";
 
         [FormField(ObjectTypeName = ObjectTypes.SpecialDropdown)]
         public string TestDropDown { get; set; }
@@ -39,8 +40,8 @@ namespace TestApp.Objects
         [FormField(Type = Types.NestedSettings)]
         public NestedClass NestedClass { get; set; }
 
-        [FormField(Type = Types.NestedSettings)]
-        public TestClass TestClass { get; set; }
+        [FormField]
+        public List<ExtendClass> ExtendClasses { get; set; } = new List<ExtendClass>();
 
     }
 }

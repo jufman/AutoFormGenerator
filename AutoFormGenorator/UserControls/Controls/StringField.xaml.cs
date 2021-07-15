@@ -1,6 +1,8 @@
-﻿using System.Reflection;
+﻿using System.Collections.Generic;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using AutoFormGenerator.Object;
 
@@ -46,7 +48,7 @@ namespace AutoFormGenerator.UserControls.Controls
             Height = formControlSettings.ControlHeight;
 
             DisplayNameTextBlock.Text = formControlSettings.DisplayValue;
-            ValueTextBox.Text = formControlSettings.Value.ToString();
+            ValueTextBox.Text = (string) formControlSettings.Value;
 
             if (formControlSettings.FixedWidth)
             {
@@ -87,6 +89,62 @@ namespace AutoFormGenerator.UserControls.Controls
                     OnPropertyFinishedEditing?.Invoke(ValueTextBox.Text);
                 }
             };
+        }
+
+        private void BuildContextMenu()
+        {
+            ValueTextBox.ContextMenu = new ContextMenu();
+
+            ValueTextBox.ContextMenu.Items.Add(new MenuItem()
+            {
+                Header = "Cut",
+                Command = ApplicationCommands.Cut
+            });
+            ValueTextBox.ContextMenu.Items.Add(new MenuItem()
+            {
+                Header = "Copy",
+                Command = ApplicationCommands.Copy
+            });
+            ValueTextBox.ContextMenu.Items.Add(new MenuItem()
+            {
+                Header = "Paste",
+                Command = ApplicationCommands.Paste
+            });
+
+            ValueTextBox.ContextMenu.Items.Add(new Separator());
+
+            ValueTextBox.ContextMenu.Items.Add(new MenuItem()
+            {
+                Header = "SelectAll",
+                Command = ApplicationCommands.SelectAll
+            });
+
+            ValueTextBox.ContextMenu.Items.Add(new Separator());
+        }
+
+        public void AddDropdownItems(List<Object.FieldInsert> FieldInsertItems, object value)
+        {
+            BuildContextMenu();
+
+            FieldInsertItems.ForEach(s =>
+            {
+                var item = new MenuItem
+                {
+                    Header = s.Value,
+                    ToolTip = s.ToolTip
+                };
+
+                item.Click += (sender, args) =>
+                {
+                    var cusIndex = ValueTextBox.CaretIndex;
+                    var text = ValueTextBox.Text.Insert(cusIndex, s.Value);
+                    ValueTextBox.Text = text;
+
+                    ValueTextBox.CaretIndex = cusIndex + s.Value.Length;
+                };
+
+                ValueTextBox.ContextMenu?.Items.Add(item);
+            });
         }
 
         public bool Validate()

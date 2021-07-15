@@ -26,93 +26,24 @@ namespace AutoFormGenerator
         private delegate void AddSpecialDropdownItems(string FieldName, List<FormDropdownItem> DropdownItems);
         private event AddSpecialDropdownItems OnAddSpecialDropdownItems;
 
+        private delegate void AddFieldInsertItems(string FieldName, List<FieldInsert> FieldInsertItems);
+        private event AddFieldInsertItems OnAddFieldInsertItems;
+
         private delegate void SpecialDropdownDisplaying(string FieldName);
         private event SpecialDropdownDisplaying OnSpecialDropdownDisplaying;
+
+        private delegate void FieldInsertDisplaying(string FieldName);
+        private event FieldInsertDisplaying OnFieldInsertDisplaying;
 
         public UserControls.FormControl formControl;
         public bool Debug { get; set; }
         public bool HasChanged { get; set; } = false;
 
-        private List<string> MDPacks = new List<string>
-        {
-            "pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml",
-        };
-
+      
         public Logic()
         {
             formControl = new UserControls.FormControl();
-
-            var md = formControl.Resources.MergedDictionaries;
-
-            MDPacks.ForEach(pack =>
-            {
-                var resourceDictionary = md.Any(dictionary => dictionary.Source.AbsoluteUri == pack);
-
-                if (resourceDictionary == false)
-                {
-                    var mr1 = new ResourceDictionary
-                    {
-                        Source = new Uri(
-                            pack,
-                            UriKind.Absolute)
-                    };
-                    formControl.Resources.MergedDictionaries.Add(mr1);
-                }
-            });
-
-            var BI = new BundledTheme
-            {
-                BaseTheme = BaseTheme.Dark,
-                PrimaryColor = PrimaryColor.Grey,
-                SecondaryColor = SecondaryColor.Orange
-            };
-            formControl.Resources.MergedDictionaries.Add(BI);
-        }
-
-        public UserControls.FormControl BuildFormControl<T>(T Class)
-        {
-            if (Debug)
-            {
-                formControl.DebugStatsWrapPanel.Visibility = Visibility.Visible;
-            }
-
-            var sw = Stopwatch.StartNew();
-            object RootClass = Class;
-            if (Class is System.Collections.IList)
-            {
-                var wrapperClass = new WrapperClass
-                {
-                    List = Class
-                };
-                RootClass = wrapperClass;
-            }
-
-            formControl.Tag = RootClass;
-
-            ProcessRootClass(RootClass, formControl);
-
-            OnPropertyModified += Logic_OnPropertyModified;
-            sw.Stop();
-
-            if (Debug)
-            {
-                formControl.LoadTimeLabel.Content = $"Load Time: {sw.ElapsedMilliseconds}ms";
-
-                sw.Restart();
-
-                formControl.Loaded += (sender, args) =>
-                {
-                    formControl.DisplayTimeLabel.Content = $"Display Time: {sw.ElapsedMilliseconds}ms";
-                    sw.Stop();
-                };
-            }
-
-            return formControl;
-        }
-
-        private void Logic_OnPropertyModified(string fieldName, object Value)
-        {
-            HasChanged = true;
+            Helpers.ApplyMD(formControl);
         }
 
         public void SubscribeToPropertyModified<T>(string fieldName, Events.PropertyModified a)
@@ -160,7 +91,7 @@ namespace AutoFormGenerator
             if (OnValidate == null) return valid;
             foreach (var d in OnValidate.GetInvocationList())
             {
-                if (!(bool) d.DynamicInvoke(null))
+                if (!(bool)d.DynamicInvoke(null))
                 {
                     valid = false;
                 }
@@ -169,9 +100,55 @@ namespace AutoFormGenerator
             return valid;
         }
 
+        public UserControls.FormControl BuildFormControl<T>(T Class)
+        {
+            if (Debug)
+            {
+                formControl.DebugStatsWrapPanel.Visibility = Visibility.Visible;
+            }
+
+            var sw = Stopwatch.StartNew();
+
+            object RootClass = Class;
+            if (Class is System.Collections.IList)
+            {
+                var wrapperClass = new WrapperClass
+                {
+                    List = Class
+                };
+                RootClass = wrapperClass;
+            }
+
+            formControl.Tag = RootClass;
+            ProcessRootClass(RootClass, formControl);
+
+            OnPropertyModified += (name, value) =>
+            {
+                HasChanged = true;
+            };
+
+            sw.Stop();
+
+            if (Debug)
+            {
+                formControl.LoadTimeLabel.Content = $"Load Time: {sw.ElapsedMilliseconds}ms";
+
+                sw.Restart();
+
+                formControl.Loaded += (sender, args) =>
+                {
+                    formControl.DisplayTimeLabel.Content = $"Display Time: {sw.ElapsedMilliseconds}ms";
+                    sw.Stop();
+                };
+            }
+
+            return formControl;
+        }
+
         private void ProcessRootClass(object rootClass, UserControls.FormControl formControl)
         {
             var processedRootClass = ProcessClass(rootClass);
+
             foreach (var uc in processedRootClass)
             {
                 var parent = new UserControls.Card();
@@ -184,17 +161,15 @@ namespace AutoFormGenerator
         private List<UserControl> ProcessClass(object rootClass)
         {
             var sw = Stopwatch.StartNew();
-
             var userControls = new List<UserControl>();
-            var rootClassType = rootClass.GetType();
-
             var rootFieldGroupCard = new UserControls.FieldGroupCard();
 
-            var builtUserControls = BuildUserControls(rootClass, GetProprites(rootClassType, Types.Prop));
+            var rootClassType = rootClass.GetType();
+            var builtUserControls = BuildUserControls(rootClass, Helpers.GetProperties(rootClassType, Types.Prop));
 
             builtUserControls.ForEach(control =>
             {
-                rootFieldGroupCard.ControlsWrapPanel.Children.Add(control);
+                rootFieldGroupCard.AddControl(control);
             });
 
             var formClass = rootClassType.GetCustomAttribute<FormClass>();
@@ -205,7 +180,7 @@ namespace AutoFormGenerator
                 displayName = formClass.DisplayName;
             }
 
-            rootFieldGroupCard.DisplayNameTextBlock.Text = displayName;
+            rootFieldGroupCard.SetText(displayName);
 
             if (builtUserControls.Count != 0)
             {
@@ -215,12 +190,10 @@ namespace AutoFormGenerator
             sw.Stop();
             if (Debug)
             {
-                rootFieldGroupCard.DisplayNameTextBlock.Text += $" - Process Time: {sw.ElapsedMilliseconds}ms";
+                rootFieldGroupCard.SetText($" - Process Time: {sw.ElapsedMilliseconds}ms", true);
             }
 
-            var handledNestedSettings = HandleNestedSettings(rootClass);
-
-            userControls.AddRange(handledNestedSettings);
+            userControls.AddRange(HandleNestedSettings(rootClass));
             userControls.AddRange(HandleNestedList(rootClass));
 
             return userControls;
@@ -230,12 +203,20 @@ namespace AutoFormGenerator
         {
             var rootClassType = rootClass.GetType();
 
-            var nestedLists = GetProprites(rootClassType, Types.NestedList);
+            var nestedLists = Helpers.GetProperties(rootClassType, Types.NestedList);
+            var normalItems = Helpers.GetProperties(rootClassType, Types.Prop);
+
+            normalItems.ForEach(info =>
+            {
+                if (info.PropertyType.IsGenericType && info.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    nestedLists.Add(info);
+                }
+            });
 
             var userControls = new List<UserControl>();
 
-
-            nestedLists.ForEach(async propInfo =>
+            nestedLists.ForEach(propInfo =>
             {
                 var formField = (FormField)propInfo.GetCustomAttributes(typeof(FormField), true).FirstOrDefault();
 
@@ -265,7 +246,7 @@ namespace AutoFormGenerator
                     displayName = formField.DisplayName;
                 }
 
-                rootFieldGroupCard.AddItemIcon.MouseLeftButtonUp += async (s, e) =>
+                rootFieldGroupCard.AddItemIcon.MouseLeftButtonUp += (s, e) =>
                 {
                     var nestedItem = Activator.CreateInstance(listType);
 
@@ -295,9 +276,9 @@ namespace AutoFormGenerator
         {
             var listControlItem = new UserControls.ListControls.Item();
 
-            var ProcessdClass = ProcessClass(item);
+            var ProcessedClass = ProcessClass(item);
 
-            ProcessdClass.ForEach(control =>
+            ProcessedClass.ForEach(control =>
             {
                 listControlItem.ControlWrapPanel.Children.Add(control);
             });
@@ -319,7 +300,7 @@ namespace AutoFormGenerator
 
         private List<UserControl> HandleNestedSettings(object rootClass)
         {
-            var nestedSettings = GetProprites(rootClass.GetType(), Types.NestedSettings);
+            var nestedSettings = Helpers.GetProperties(rootClass.GetType(), Types.NestedSettings);
 
             var controls = new List<UserControl>();
 
@@ -431,7 +412,7 @@ namespace AutoFormGenerator
 
             if (control != null)
             {
-                var FieldConditions = GetFieldConditions(formControlSettings.ClassType, formControlSettings.PropInfo.Name);
+                var FieldConditions = Helpers.GetFieldConditions(formControlSettings.ClassType, formControlSettings.PropInfo.Name);
 
                 FieldConditions.ForEach(info =>
                 {
@@ -439,7 +420,7 @@ namespace AutoFormGenerator
 
                     OnPropertyModified += (name, value) =>
                     {
-                        HandleFieldConditions(FieldCondition, formControlSettings.ClassType, name, value, control);
+                        Helpers.HandleFieldConditions(FieldCondition, formControlSettings.ClassType, name, value, control);
                     };
                 });
 
@@ -449,24 +430,6 @@ namespace AutoFormGenerator
             return null;
         }
 
-        private void HandleFieldConditions(FieldCondition FieldCondition, Type classType, string name, object value, UserControl control)
-        {
-            if (FieldCondition != null)
-            {
-                var filedName = classType.FullName + "." + FieldCondition.Field;
-                if (name == filedName)
-                {
-                    if (CanConditionalDisplay(FieldCondition, value.ToString()) == false)
-                    {
-                        control.Visibility = Visibility.Collapsed;
-                    }
-                    else
-                    {
-                        control.Visibility = Visibility.Visible;
-                    }
-                }
-            }
-        }
 
         private UserControl BuildControl(FormControlSettings formControlSettings)
         {
@@ -491,6 +454,16 @@ namespace AutoFormGenerator
 
                     stringField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
                     stringField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
+
+                    OnAddFieldInsertItems += (Name, Items) =>
+                    {
+                        if (Name == formControlSettings.FieldName)
+                        {
+                            stringField.AddDropdownItems(Items, formControlSettings.Value);
+                        }
+                    };
+
+                    OnSpecialDropdownDisplaying?.Invoke(formControlSettings.FieldName);
 
                     userControl = stringField;
                     break;
@@ -597,125 +570,45 @@ namespace AutoFormGenerator
                     userControl = specialDropdown;
                     break;
                 case ObjectTypes.FolderBrowser:
-                    var folderStringField = new FolderBrowserField(displayValue, (string) value)
-                    {
-                        Width = controlWidth,
-                        Height = controlHeight
-                    };
+                    var folderStringField = new FolderBrowserField();
 
-                    if (FixedWidth)
-                    {
-                        folderStringField.DisplayNameTextBlock.Width = displayNameWidth;
-                    }
-                    else
-                    {
-                        folderStringField.Margin = new Thickness(0, 0, 30, 0);
-                    }
+                    folderStringField.BuildDisplay(formControlSettings);
 
-                    folderStringField.ValueTextBox.Width = valueWidth;
-                    if (formField.Required)
+                    if (formControlSettings.Required)
                     {
-                        folderStringField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
                         OnValidate += folderStringField.Validate;
                     }
 
-                    if (formField.ToolTip != string.Empty)
-                    {
-                        folderStringField.ValueTextBox.ToolTip = formField.ToolTip;
-                    }
+                    folderStringField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    folderStringField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
-                    folderStringField.ValueTextBox.TextChanged += (sen, e) =>
-                    {
-                        propInfo.SetValue(Class, folderStringField.ValueTextBox.Text);
-
-                        OnPropertyModified?.Invoke(fieldName, folderStringField.ValueTextBox.Text);
-                        OnPropertyFinishedEditing?.Invoke(fieldName, folderStringField.ValueTextBox.Text);
-                    };
                     userControl = folderStringField;
                     break;
                 case ObjectTypes.TimePicker:
-                    var TimePickerField = new TimePickerField(displayValue, (double) value)
-                    {
-                        Width = controlWidth,
-                        Height = controlHeight
-                    };
+                    var timePickerField = new TimePickerField();
 
-                    if (FixedWidth)
-                    {
-                        TimePickerField.DisplayNameTextBlock.Width = displayNameWidth;
-                    }
-                    else
-                    {
-                        TimePickerField.Margin = new Thickness(0, 0, 30, 0);
-                    }
+                    timePickerField.BuildDisplay(formControlSettings);
 
-                    TimePickerField.TimePicker.Width = valueWidth;
-                    if (formField.Required)
-                    {
-                        TimePickerField.DisplayNameTextBlock.ToolTip = "This is a Required Field";
-                        
-                    }
-                    if (formField.ToolTip != string.Empty)
-                    {
-                        TimePickerField.TimePicker.ToolTip = formField.ToolTip;
-                    }
+                    timePickerField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    timePickerField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
-                    TimePickerField.TimePicker.SelectedTimeChanged += (sender, args) =>
-                    {
-                        var CurrentValue = TimePickerField.TimePicker.SelectedTime?.TimeOfDay.TotalSeconds ?? 0;
-
-                        propInfo.SetValue(Class, CurrentValue);
-
-                        OnPropertyModified?.Invoke(fieldName, CurrentValue);
-                        OnPropertyFinishedEditing?.Invoke(fieldName, CurrentValue);
-                    };
-
-                    userControl = TimePickerField;
+                    userControl = timePickerField;
                     break;
                 case ObjectTypes.Custom:
-                    if (formField.CustomControl != null && formField.CustomControl.GetInterface(typeof(Interfaces.ICustomControl).FullName) != null) 
+                    if (formControlSettings.FormField.CustomControl != null && formControlSettings.FormField.CustomControl.GetInterface(typeof(Interfaces.ICustomControl).FullName) != null) 
                     {
-                        var customControlClass = (Interfaces.ICustomControl)Activator.CreateInstance(formField.CustomControl);
-                        if (!(customControlClass is UserControl customControl))
+                        var customControlClass = (Interfaces.ICustomControl)Activator.CreateInstance(formControlSettings.FormField.CustomControl);
+                        if (!(customControlClass is UserControl))
                         {
                             break;
                         }
 
-                        var customControlBase = new UserControls.Controls.CustomControlBase(displayValue)
-                        {
-                            Width = controlWidth,
-                            Height = controlHeight
-                        };
+                        var customControlBase = new CustomControlBase();
 
-                        if (FixedWidth)
-                        {
-                            customControlBase.DisplayNameTextBlock.Width = displayNameWidth;
-                        }
-                        else
-                        {
-                            customControlBase.Margin = new Thickness(0, 0, 30, 0);
-                        }
+                        customControlBase.BuildDisplay(formControlSettings, customControlClass);
 
-                        customControl.Width = valueWidth;
-                        customControlClass.SetValue(value);
-
-                        if (formField.Required)
-                        {
-                            customControlBase.DisplayNameTextBlock.ToolTip = "This is a Required Field";
-                        }
-
-                        customControlBase.CustomControlCanvas.Children.Add(customControl);
-
-                        customControlClass.OnPropertyFinishedEditing += (name, o) =>
-                        {
-                            OnPropertyFinishedEditing?.Invoke(fieldName, o);
-                        };
-
-                        customControlClass.OnPropertyModified += (name, o) =>
-                        {
-                            propInfo.SetValue(Class, o);
-                            OnPropertyModified?.Invoke(fieldName, o);
-                        };
+                        customControlBase.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                        customControlBase.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
                         userControl = customControlBase;
                     }
@@ -723,21 +616,6 @@ namespace AutoFormGenerator
             }
 
             return userControl;
-        }
-
-        private bool CanConditionalDisplay(FieldCondition condition, string fieldValue)
-        {
-            switch (condition.Operator)
-            {
-                case Operators.Equals:
-                    if (condition.Value.ToString() != fieldValue)
-                    {
-                        return false;
-                    }
-                    break;
-            }
-
-            return true;
         }
 
         private List<DropdownField.DropdownItem> BuildDropdownItems(Type Class)
@@ -784,25 +662,21 @@ namespace AutoFormGenerator
                     OnAddSpecialDropdownItems?.Invoke(objectType.FullName + "." + FieldName, DropdownItems);
                 }
             };
-            
         }
 
-        private List<PropertyInfo> GetProprites(Type baseType, Types type)
+        public void PopulateFieldInsertItems<T>(string FieldName, List<FieldInsert> FieldInsertItems)
         {
-            var rawPropertyInfos = new List<PropertyInfo>(baseType.GetProperties());
+            var objectType = typeof(T);
 
-            var propertyInfo = new List<PropertyInfo>(rawPropertyInfos.Where(a => a.GetCustomAttributes(typeof(FormField), true).Any(b => ((FormField)b).Type == type)));
+            OnAddFieldInsertItems?.Invoke(objectType.FullName + "." + FieldName, FieldInsertItems);
 
-            return propertyInfo;
-        }
-
-        private List<PropertyInfo> GetFieldConditions(Type baseType, string fieldName)
-        {
-            var rawPropertyInfos = new List<PropertyInfo>(baseType.GetProperties());
-
-            var propertyInfo = new List<PropertyInfo>(rawPropertyInfos.Where(a => a.Name == fieldName).Where(a => a.GetCustomAttributes(typeof(FieldCondition), true).Any()));
-
-            return propertyInfo;
+            OnFieldInsertDisplaying += name =>
+            {
+                if (name == objectType.FullName + "." + FieldName)
+                {
+                    OnAddFieldInsertItems?.Invoke(objectType.FullName + "." + FieldName, FieldInsertItems);
+                }
+            };
         }
 
         private class WrapperClass

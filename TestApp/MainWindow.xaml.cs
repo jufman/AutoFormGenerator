@@ -94,6 +94,15 @@ namespace TestApp
                     }
                 });
 
+                AFG.PopulateFieldInsertItems<Objects.MainClass>("TestString", new List<FieldInsert>
+                {
+                    new FieldInsert()
+                    {
+                        Value = "Test",
+                        ToolTip = "This is a test item"
+                    }
+                });
+
 
                 AFG.SubscribeToOnPropertyFinishedEditing<Objects.MainClass>("TestString", (name, value) =>
                 {
