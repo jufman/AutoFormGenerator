@@ -37,6 +37,11 @@ namespace TestApp.Objects
         [FormField(ObjectTypeName = ObjectTypes.SpecialDropdown)]
         public string TestDropDown { get; set; }
 
+        [FormField]
+        [FieldCondition(Field = "TestDropDown", Operator = Operators.Equals, Value = "Bus")]
+        public string HideMe { get; set; } = "";
+
+
         [FormField(Type = Types.NestedSettings)]
         public NestedClass NestedClass { get; set; }
 
