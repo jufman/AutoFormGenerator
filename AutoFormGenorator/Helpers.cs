@@ -46,7 +46,7 @@ namespace AutoFormGenerator
                 var filedName = classType.FullName + "." + FieldCondition.Field;
                 if (name == filedName)
                 {
-                    if (Helpers.CanConditionalDisplay(FieldCondition, value.ToString()) == false)
+                    if (Helpers.CanConditionalDisplay(FieldCondition, value) == false)
                     {
                         control.Visibility = Visibility.Collapsed;
                     }
@@ -58,12 +58,17 @@ namespace AutoFormGenerator
             }
         }
 
-        private static bool CanConditionalDisplay(FieldCondition condition, string fieldValue)
+        private static bool CanConditionalDisplay(FieldCondition condition, object fieldValue)
         {
+            if (fieldValue == null)
+            {
+                return false;
+            }
+
             switch (condition.Operator)
             {
                 case Operators.Equals:
-                    if (condition.Value.ToString() != fieldValue)
+                    if (condition.Value.ToString() != fieldValue.ToString())
                     {
                         return false;
                     }

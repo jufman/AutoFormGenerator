@@ -567,6 +567,9 @@ namespace AutoFormGenerator
 
                     OnSpecialDropdownDisplaying?.Invoke(formControlSettings.FieldName);
 
+                    specialDropdown.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    specialDropdown.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
+
                     userControl = specialDropdown;
                     break;
                 case ObjectTypes.FolderBrowser:
