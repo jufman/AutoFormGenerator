@@ -1,7 +1,9 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using AutoFormGenerator.Object;
+using MaterialDesignThemes.Wpf;
 
 namespace AutoFormGenerator.UserControls.Controls
 {
@@ -11,6 +13,8 @@ namespace AutoFormGenerator.UserControls.Controls
     public partial class PasswordField : UserControl
     {
         private string HoldValue = "";
+
+        private bool ShowPassword = false;
 
         public bool HasUpdated { get; set; }
 
@@ -46,6 +50,7 @@ namespace AutoFormGenerator.UserControls.Controls
 
             DisplayNameTextBlock.Text = formControlSettings.DisplayValue;
             ValuePasswordBox.Password = (string) formControlSettings.Value;
+            ValueTextBox.Text = (string)formControlSettings.Value;
 
             if (formControlSettings.FixedWidth)
             {
@@ -57,6 +62,8 @@ namespace AutoFormGenerator.UserControls.Controls
             }
 
             ValuePasswordBox.Width = formControlSettings.ValueWidth;
+            ValueTextBox.Width = formControlSettings.ValueWidth;
+
             if (!formControlSettings.CanEdit)
             {
                 ValuePasswordBox.IsEnabled = false;
@@ -70,6 +77,7 @@ namespace AutoFormGenerator.UserControls.Controls
             if (formControlSettings.ToolTip != string.Empty)
             {
                 ValuePasswordBox.ToolTip = formControlSettings.ToolTip;
+                ValueTextBox.ToolTip = formControlSettings.ToolTip;
             }
 
             ValuePasswordBox.PasswordChanged += (sen, e) =>
@@ -77,6 +85,8 @@ namespace AutoFormGenerator.UserControls.Controls
                 formControlSettings.SetValue(ValuePasswordBox.Password);
 
                 OnPropertyModified?.Invoke(ValuePasswordBox.Password);
+
+                ValueTextBox.Text = ValuePasswordBox.Password;
             };
 
             ValuePasswordBox.LostKeyboardFocus += (sender, args) =>
@@ -106,6 +116,26 @@ namespace AutoFormGenerator.UserControls.Controls
             }
 
             return Valid;
+        }
+
+        private void UIElement_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (ShowPassword)
+            {
+                ValueTextBox.Visibility = Visibility.Collapsed;
+                ValuePasswordBox.Visibility = Visibility.Visible;
+
+                ShowPasswordIcon.Kind = PackIconKind.Eye;
+                ShowPassword = false;
+            }
+            else
+            {
+                ValueTextBox.Visibility = Visibility.Visible;
+                ValuePasswordBox.Visibility = Visibility.Collapsed;
+
+                ShowPasswordIcon.Kind = PackIconKind.EyeOff;
+                ShowPassword = true;
+            }
         }
     }
 }
