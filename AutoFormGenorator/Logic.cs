@@ -175,7 +175,7 @@ namespace AutoFormGenerator
             var formClass = rootClassType.GetCustomAttribute<FormClass>();
             var displayName = rootClassType.Name;
 
-            if (formClass != null)
+            if (formClass != null && formClass.DisplayName != string.Empty)
             {
                 displayName = formClass.DisplayName;
             }

@@ -10,7 +10,7 @@ namespace TestApp.Objects
     [FormClass]
     public class MainClass : ExtendClass
     {
-        [FormField]
+        [FormField(Required = true)]
         public string TestString { get; set; } = "";
 
         [FormField] 
@@ -44,6 +44,10 @@ namespace TestApp.Objects
 
         [FormField(Type = Types.NestedSettings)]
         public NestedClass NestedClass { get; set; }
+
+
+        [FormField(Type = Types.NestedSettings)]
+        public ShrinkClass ShrinkClass { get; set; }
 
         [FormField]
         public List<ExtendClass> ExtendClasses { get; set; } = new List<ExtendClass>();

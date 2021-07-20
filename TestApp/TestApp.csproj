@@ -83,6 +83,7 @@
     <Compile Include="Objects\ExtendClass.cs" />
     <Compile Include="Objects\MainClass.cs" />
     <Compile Include="Objects\NestedClass.cs" />
+    <Compile Include="Objects\ShrinkClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

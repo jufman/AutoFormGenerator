@@ -94,6 +94,15 @@ namespace TestApp
                     }
                 });
 
+                AFG.PopulateSpecialDropdown<Objects.ExtendClass>("Act", new List<FormDropdownItem>
+                {
+                    new FormDropdownItem()
+                    {
+                        Value = 1.0,
+                        DisplayValue = "cap"
+                    }
+                });
+
                 AFG.PopulateFieldInsertItems<Objects.MainClass>("TestString", new List<FieldInsert>
                 {
                     new FieldInsert()
@@ -119,5 +128,31 @@ namespace TestApp
         }
 
 
+        private void ValidateButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            afgLogics.ForEach(logic =>
+            {
+                logic.Compile();
+            });
+        }
+
+        private void ExtendButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            afgLogics.ForEach(AFG =>
+            {
+                AFG.PopulateSpecialDropdown<Objects.ExtendClass>("Act", new List<FormDropdownItem>
+                {
+                    new FormDropdownItem()
+                    {
+                        Value = 1.0,
+                        DisplayValue = "Critter"
+                    }, new FormDropdownItem()
+                    {
+                        Value = 1.0,
+                        DisplayValue = "Dog"
+                    }
+                });
+            });
+        }
     }
 }
