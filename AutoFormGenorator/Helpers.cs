@@ -39,8 +39,13 @@ namespace AutoFormGenerator
         }
 
 
-        public static void HandleFieldConditions(FieldCondition FieldCondition, Type classType, string name, object value, UserControl control)
+        public static void HandleFieldConditions(List<FieldCondition> FieldConditions, Type classType, string name, object value, UserControl control)
         {
+            FieldConditions.ForEach(condition =>
+            {
+
+            });
+
             if (FieldCondition != null)
             {
                 var filedName = classType.FullName + "." + FieldCondition.Field;
@@ -78,7 +83,7 @@ namespace AutoFormGenerator
             return true;
         }
 
-        public static void ApplyMD(UserControls.FormControl formControl)
+        public static void ApplyMaterialDesignPack(UserControls.FormControl formControl)
         {
             var md = formControl.Resources.MergedDictionaries;
 

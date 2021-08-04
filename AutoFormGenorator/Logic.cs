@@ -43,7 +43,7 @@ namespace AutoFormGenerator
         public Logic()
         {
             formControl = new UserControls.FormControl();
-            Helpers.ApplyMD(formControl);
+            Helpers.ApplyMaterialDesignPack(formControl);
         }
 
         public void SubscribeToPropertyModified<T>(string fieldName, Events.PropertyModified a)
@@ -416,7 +416,8 @@ namespace AutoFormGenerator
 
                 FieldConditions.ForEach(info =>
                 {
-                    var FieldCondition = (FieldCondition)info.GetCustomAttributes(typeof(FieldCondition), true).FirstOrDefault();
+                    var FieldCondition = info.GetCustomAttributes(typeof(FieldCondition), true).Cast<FieldCondition>().ToList();
+
 
                     OnPropertyModified += (name, value) =>
                     {

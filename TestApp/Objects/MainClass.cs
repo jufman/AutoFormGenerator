@@ -17,6 +17,9 @@ namespace TestApp.Objects
         public bool TestBool { get; set; }
 
         [FormField]
+        public bool ShowNow { get; set; }
+
+        [FormField]
         public int TestInt { get; set; }
         [FormField]
         public double TestDouble { get; set; }
@@ -32,6 +35,7 @@ namespace TestApp.Objects
 
         [FormField(ObjectTypeName = ObjectTypes.Password)]
         [FieldCondition(Field = "TestBool", Operator = Operators.Equals, Value = true)]
+        [FieldCondition(Field = "ShowNow", Operator = Operators.Equals, Value = true, IsOr = true)]
         public string TestPassword { get; set; } = "";
 
         [FormField(ObjectTypeName = ObjectTypes.SpecialDropdown)]

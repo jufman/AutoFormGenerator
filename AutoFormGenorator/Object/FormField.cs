@@ -30,6 +30,8 @@ namespace AutoFormGenerator.Object
         public string Field { get; set; }
         public Operators Operator { get; set; } = Operators.Equals;
         public object Value { get; set; }
+        public bool IsOr { get; set; } = false;
+
     }
 
 
@@ -38,6 +40,7 @@ namespace AutoFormGenerator.Object
         Equals,
         NotEquals
     }
+
 
     public enum Types
     {
