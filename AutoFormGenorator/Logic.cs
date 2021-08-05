@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Media;
+using AutoFormGenerator.Interfaces;
 using AutoFormGenerator.Object;
 using AutoFormGenerator.UserControls.Controls;
 using MaterialDesignColors;
@@ -35,7 +36,10 @@ namespace AutoFormGenerator
         private delegate void FieldInsertDisplaying(string FieldName);
         private event FieldInsertDisplaying OnFieldInsertDisplaying;
 
+        public Dictionary<string, IControlField> ControlFields = new Dictionary<string, IControlField>();
+
         public UserControls.FormControl formControl;
+
         public bool Debug { get; set; }
         public bool HasChanged { get; set; } = false;
 
@@ -412,18 +416,22 @@ namespace AutoFormGenerator
 
             if (control != null)
             {
-                var FieldConditions = Helpers.GetFieldConditions(formControlSettings.ClassType, formControlSettings.PropInfo.Name);
+                var fieldConditionsPropertyInfos = Helpers.GetFieldConditions(formControlSettings.ClassType, formControlSettings.PropInfo.Name);
 
-                FieldConditions.ForEach(info =>
+                fieldConditionsPropertyInfos.ForEach(info =>
                 {
-                    var FieldCondition = info.GetCustomAttributes(typeof(FieldCondition), true).Cast<FieldCondition>().ToList();
-
+                    var FieldConditions = info.GetCustomAttributes(typeof(FieldCondition), true).Cast<FieldCondition>().ToList();
 
                     OnPropertyModified += (name, value) =>
                     {
-                        Helpers.HandleFieldConditions(FieldCondition, formControlSettings.ClassType, name, value, control);
+                        HandleFieldConditions(FieldConditions, formControlSettings.ClassType, name, value, control);
                     };
                 });
+
+                if (!ControlFields.ContainsKey(formControlSettings.FieldName))
+                {
+                    ControlFields.Add(formControlSettings.FieldName, (IControlField)control);
+                }
 
                 return control;
             }
@@ -431,6 +439,66 @@ namespace AutoFormGenerator
             return null;
         }
 
+
+        public void HandleFieldConditions(List<FieldCondition> FieldConditions, Type classType, string name, object value, UserControl control)
+        {
+            var OrFieldConditions = FieldConditions.FindAll(condition => condition.IsOr).ToList();
+            var AndFieldConditions = FieldConditions.FindAll(condition => condition.IsOr == false).ToList();
+
+            var canDisplay = HandleAndFieldConditions(AndFieldConditions, classType) && HandleOrFieldConditions(OrFieldConditions, classType);
+
+            control.Visibility = canDisplay ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private bool HandleOrFieldConditions(List<FieldCondition> OrFieldConditions, Type classType)
+        {
+            var canDisplay = false;
+
+            if (OrFieldConditions.Count == 0)
+            {
+                return true;
+            }
+
+            OrFieldConditions.ForEach(condition =>
+            {
+                var filedName = classType.FullName + "." + condition.Field;
+                if (ControlFields.TryGetValue(filedName, out var Field))
+                {
+                    var fieldValue = Field.GetValue();
+                    var CanConditionalDisplay = Helpers.CanConditionalDisplay(condition, fieldValue);
+
+                    if (CanConditionalDisplay)
+                    {
+                        canDisplay = true;
+                    }
+                }
+            });
+
+
+            return canDisplay;
+        }
+
+        private bool HandleAndFieldConditions(List<FieldCondition> AndFieldConditions, Type classType)
+        {
+            var canDisplay = true;
+
+            AndFieldConditions.ForEach(condition =>
+            {
+                var filedName = classType.FullName + "." + condition.Field;
+                if (ControlFields.TryGetValue(filedName, out var Field))
+                {
+                    var fieldValue = Field.GetValue();
+                    var CanConditionalDisplay = Helpers.CanConditionalDisplay(condition, fieldValue);
+
+                    if (CanConditionalDisplay == false)
+                    {
+                        canDisplay = false;
+                    }
+                }
+            });
+
+            return canDisplay;
+        }
 
         private UserControl BuildControl(FormControlSettings formControlSettings)
         {
@@ -453,8 +521,8 @@ namespace AutoFormGenerator
                         OnValidate += stringField.Validate;
                     }
 
-                    stringField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
-                    stringField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
+                    stringField.OnControlModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    stringField.OnControlFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
                     OnAddFieldInsertItems += (Name, Items) =>
                     {
@@ -478,8 +546,8 @@ namespace AutoFormGenerator
                         OnValidate += passwordField.Validate;
                     }
 
-                    passwordField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
-                    passwordField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
+                    passwordField.OnControlModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    passwordField.OnControlFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
                     userControl = passwordField;
                     break;
@@ -493,8 +561,8 @@ namespace AutoFormGenerator
                         OnValidate += doubleField.Validate;
                     }
 
-                    doubleField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
-                    doubleField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
+                    doubleField.OnControlModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    doubleField.OnControlFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
                     userControl = doubleField;
                     break;
@@ -508,8 +576,8 @@ namespace AutoFormGenerator
                         OnValidate += intField.Validate;
                     }
 
-                    intField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
-                    intField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
+                    intField.OnControlModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    intField.OnControlFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
                     userControl = intField;
                     break;
@@ -523,8 +591,8 @@ namespace AutoFormGenerator
                         OnValidate += floatField.Validate;
                     }
 
-                    floatField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
-                    floatField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
+                    floatField.OnControlModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    floatField.OnControlFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
                     userControl = floatField;
                     break;
@@ -538,8 +606,8 @@ namespace AutoFormGenerator
                         OnValidate += booleanField.Validate;
                     }
 
-                    booleanField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
-                    booleanField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
+                    booleanField.OnControlModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    booleanField.OnControlFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
                     userControl = booleanField;
                     break;
@@ -548,8 +616,8 @@ namespace AutoFormGenerator
 
                     dropdownField.BuildDisplay(formControlSettings, BuildDropdownItems(formControlSettings.FormField.DropDownClass));
 
-                    dropdownField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
-                    dropdownField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
+                    dropdownField.OnControlModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    dropdownField.OnControlFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
                     userControl = dropdownField;
                     break;
@@ -568,8 +636,8 @@ namespace AutoFormGenerator
 
                     OnSpecialDropdownDisplaying?.Invoke(formControlSettings.FieldName);
 
-                    specialDropdown.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
-                    specialDropdown.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
+                    specialDropdown.OnControlModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    specialDropdown.OnControlFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
                     userControl = specialDropdown;
                     break;
@@ -583,8 +651,8 @@ namespace AutoFormGenerator
                         OnValidate += folderStringField.Validate;
                     }
 
-                    folderStringField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
-                    folderStringField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
+                    folderStringField.OnControlModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    folderStringField.OnControlFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
                     userControl = folderStringField;
                     break;
@@ -593,8 +661,8 @@ namespace AutoFormGenerator
 
                     timePickerField.BuildDisplay(formControlSettings);
 
-                    timePickerField.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
-                    timePickerField.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
+                    timePickerField.OnControlModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                    timePickerField.OnControlFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
                     userControl = timePickerField;
                     break;
@@ -611,8 +679,8 @@ namespace AutoFormGenerator
 
                         customControlBase.BuildDisplay(formControlSettings, customControlClass);
 
-                        customControlBase.OnPropertyModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
-                        customControlBase.OnPropertyFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
+                        customControlBase.OnControlModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
+                        customControlBase.OnControlFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
 
                         userControl = customControlBase;
                     }

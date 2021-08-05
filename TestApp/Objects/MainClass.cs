@@ -13,11 +13,11 @@ namespace TestApp.Objects
         [FormField(Required = true)]
         public string TestString { get; set; } = "";
 
-        [FormField] 
-        public bool TestBool { get; set; }
+        [FormField]
+        public bool TestBool { get; set; } = true;
 
         [FormField]
-        public bool ShowNow { get; set; }
+        public bool ShowNow { get; set; } = true;
 
         [FormField]
         public int TestInt { get; set; }
@@ -34,7 +34,7 @@ namespace TestApp.Objects
         public double TestDoubleTime { get; set; } = 300;
 
         [FormField(ObjectTypeName = ObjectTypes.Password)]
-        [FieldCondition(Field = "TestBool", Operator = Operators.Equals, Value = true)]
+        [FieldCondition(Field = "TestBool", Operator = Operators.Equals, Value = true, IsOr = true)]
         [FieldCondition(Field = "ShowNow", Operator = Operators.Equals, Value = true, IsOr = true)]
         public string TestPassword { get; set; } = "";
 
@@ -42,8 +42,14 @@ namespace TestApp.Objects
         public string TestDropDown { get; set; }
 
         [FormField]
-        [FieldCondition(Field = "TestDropDown", Operator = Operators.Equals, Value = "Bus")]
+        [FieldCondition(Field = "TestDropDown", Operator = Operators.Equals, Value = "Bus", IsOr = true)]
+        [FieldCondition(Field = "TestDropDown", Operator = Operators.Equals, Value = "Train", IsOr = true)]
         public string HideMe { get; set; } = "";
+
+        [FormField(ObjectTypeName = ObjectTypes.Password)]
+        [FieldCondition(Field = "TestBool", Operator = Operators.Equals, Value = true)]
+        [FieldCondition(Field = "ShowNow", Operator = Operators.Equals, Value = true)]
+        public string AndDisplay { get; set; } = "";
 
 
         [FormField(Type = Types.NestedSettings)]
@@ -54,7 +60,13 @@ namespace TestApp.Objects
         public ShrinkClass ShrinkClass { get; set; }
 
         [FormField]
-        public List<ExtendClass> ExtendClasses { get; set; } = new List<ExtendClass>();
+        public List<ExtendClass> ExtendClasses { get; set; } = new List<ExtendClass>()
+        {
+            new ExtendClass()
+            {
+                Act = 2.0
+            }
+        };
 
     }
 }

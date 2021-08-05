@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
+using AutoFormGenerator.Events;
 using Cursors = System.Windows.Input.Cursors;
 
 namespace AutoFormGenerator.UserControls.Controls
@@ -12,14 +13,10 @@ namespace AutoFormGenerator.UserControls.Controls
     /// <summary>
     /// Interaction logic for FolderBrowserField.xaml
     /// </summary>
-    public partial class FolderBrowserField : System.Windows.Controls.UserControl
+    public partial class FolderBrowserField : Interfaces.IControlField
     {
-
-        public delegate void PropertyModified(object Value);
-        public event PropertyModified OnPropertyModified;
-
-        public delegate void PropertyFinishedEditing(object Value);
-        public event PropertyFinishedEditing OnPropertyFinishedEditing;
+        public event ControlModified OnControlModified;
+        public event ControlFinishedEditing OnControlFinishedEditing;
 
         public FolderBrowserField()
         {
@@ -65,8 +62,8 @@ namespace AutoFormGenerator.UserControls.Controls
             {
                 formControlSettings.SetValue(ValueTextBox.Text);
 
-                OnPropertyModified?.Invoke(ValueTextBox.Text);
-                OnPropertyFinishedEditing?.Invoke(ValueTextBox.Text);
+                OnControlModified?.Invoke(ValueTextBox.Text);
+                OnControlFinishedEditing?.Invoke(ValueTextBox.Text);
             };
         }
 
@@ -116,6 +113,11 @@ namespace AutoFormGenerator.UserControls.Controls
         private void ValueTextBox_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
             ValueTextBox.Cursor = Cursors.Arrow;
+        }
+
+        public object GetValue()
+        {
+            return ValueTextBox.Text;
         }
     }
 }

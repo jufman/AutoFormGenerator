@@ -12,6 +12,8 @@ namespace AutoFormGenerator.Interfaces
         event Events.PropertyFinishedEditing OnPropertyFinishedEditing;
 
         void SetValue(object Value);
+        object GetValue();
+        bool Validate();
 
     }
 }

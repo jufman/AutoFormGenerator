@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using AutoFormGenerator.Events;
 using AutoFormGenerator.Object;
 using MaterialDesignThemes.Wpf;
 
@@ -10,7 +11,7 @@ namespace AutoFormGenerator.UserControls.Controls
     /// <summary>
     /// Interaction logic for PasswordField.xaml
     /// </summary>
-    public partial class PasswordField : UserControl
+    public partial class PasswordField : Interfaces.IControlField
     {
         private string HoldValue = "";
 
@@ -18,11 +19,8 @@ namespace AutoFormGenerator.UserControls.Controls
 
         public bool HasUpdated { get; set; }
 
-        public delegate void PropertyModified(string Value);
-        public event PropertyModified OnPropertyModified;
-
-        public delegate void PropertyFinishedEditing(string Value);
-        public event PropertyFinishedEditing OnPropertyFinishedEditing;
+        public event ControlModified OnControlModified;
+        public event ControlFinishedEditing OnControlFinishedEditing;
 
         public PasswordField()
         {
@@ -84,7 +82,7 @@ namespace AutoFormGenerator.UserControls.Controls
             {
                 formControlSettings.SetValue(ValuePasswordBox.Password);
 
-                OnPropertyModified?.Invoke(ValuePasswordBox.Password);
+                OnControlModified?.Invoke(ValuePasswordBox.Password);
 
                 ValueTextBox.Text = ValuePasswordBox.Password;
             };
@@ -93,7 +91,7 @@ namespace AutoFormGenerator.UserControls.Controls
             {
                 if (HasUpdated)
                 {
-                    OnPropertyFinishedEditing?.Invoke(ValuePasswordBox.Password);
+                    OnControlFinishedEditing?.Invoke(ValuePasswordBox.Password);
                 }
             };
         }
@@ -136,6 +134,11 @@ namespace AutoFormGenerator.UserControls.Controls
                 ShowPasswordIcon.Kind = PackIconKind.EyeOff;
                 ShowPassword = true;
             }
+        }
+
+        public object GetValue()
+        {
+            return ValuePasswordBox.Password;
         }
     }
 }

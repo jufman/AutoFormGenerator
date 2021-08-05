@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using AutoFormGenerator.Events;
 using AutoFormGenerator.Object;
 
 namespace AutoFormGenerator.UserControls.Controls
@@ -10,16 +11,13 @@ namespace AutoFormGenerator.UserControls.Controls
     /// <summary>
     /// Interaction logic for IntField.xaml
     /// </summary>
-    public partial class IntField : UserControl
+    public partial class IntField : Interfaces.IControlField
     {
         private string HoldValue = "";
         public bool HasUpdated { get; set; }
 
-        public delegate void PropertyModified(int Value);
-        public event PropertyModified OnPropertyModified;
-
-        public delegate void PropertyFinishedEditing(int Value);
-        public event PropertyFinishedEditing OnPropertyFinishedEditing;
+        public event ControlModified OnControlModified;
+        public event ControlFinishedEditing OnControlFinishedEditing;
 
         public IntField()
         {
@@ -84,7 +82,7 @@ namespace AutoFormGenerator.UserControls.Controls
                 if (int.TryParse(ValueTextBox.Text, out var intValue))
                 {
                     formControlSettings.SetValue(intValue);
-                    OnPropertyModified?.Invoke(intValue);
+                    OnControlModified?.Invoke(intValue);
                 }
             };
 
@@ -92,7 +90,7 @@ namespace AutoFormGenerator.UserControls.Controls
             {
                 if (HasUpdated && int.TryParse(ValueTextBox.Text, out var intValue))
                 {
-                    OnPropertyFinishedEditing?.Invoke(intValue);
+                    OnControlFinishedEditing?.Invoke(intValue);
                 }
             };
         }
@@ -121,6 +119,11 @@ namespace AutoFormGenerator.UserControls.Controls
             }
 
             return Valid;
+        }
+
+        public object GetValue()
+        {
+            return ValueTextBox.Text;
         }
 
     }

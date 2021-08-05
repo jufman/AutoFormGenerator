@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using AutoFormGenerator.Events;
 using AutoFormGenerator.Object;
 
 namespace AutoFormGenerator.UserControls.Controls
@@ -19,13 +20,12 @@ namespace AutoFormGenerator.UserControls.Controls
     /// <summary>
     /// Interaction logic for CustomControlBase.xaml
     /// </summary>
-    public partial class CustomControlBase : UserControl
+    public partial class CustomControlBase : UserControl, Interfaces.IControlField
     {
-        public delegate void PropertyModified(object Value);
-        public event PropertyModified OnPropertyModified;
+        public event ControlModified OnControlModified;
+        public event ControlFinishedEditing OnControlFinishedEditing;
 
-        public delegate void PropertyFinishedEditing(object Value);
-        public event PropertyFinishedEditing OnPropertyFinishedEditing;
+        private Interfaces.ICustomControl CustomControlClass;
 
         public CustomControlBase()
         {
@@ -34,6 +34,8 @@ namespace AutoFormGenerator.UserControls.Controls
 
         public void BuildDisplay(FormControlSettings formControlSettings, Interfaces.ICustomControl customControlClass)
         {
+            CustomControlClass = customControlClass;
+
             var customControl = (UserControl) customControlClass;
 
             Width = formControlSettings.ControlWidth;
@@ -63,15 +65,29 @@ namespace AutoFormGenerator.UserControls.Controls
 
             customControlClass.OnPropertyFinishedEditing += (name, o) =>
             {
-                OnPropertyFinishedEditing?.Invoke(o);
+                OnControlFinishedEditing?.Invoke(o);
             };
 
             customControlClass.OnPropertyModified += (name, o) =>
             {
                 formControlSettings.SetValue(o);
-                OnPropertyModified?.Invoke(o);
+                OnControlModified?.Invoke(o);
             };
         }
 
+        public object GetValue()
+        {
+            return CustomControlClass.GetValue();
+        }
+
+        public void BuildDisplay(FormControlSettings formControlSettings)
+        {
+            
+        }
+
+        public bool Validate()
+        {
+            return CustomControlClass.Validate();
+        }
     }
 }

@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using AutoFormGenerator.Events;
 using AutoFormGenerator.Object;
 
 namespace AutoFormGenerator.UserControls.Controls
@@ -12,17 +13,14 @@ namespace AutoFormGenerator.UserControls.Controls
     /// <summary>
     /// Interaction logic for TextField.xaml
     /// </summary>
-    public partial class StringField : UserControl
+    public partial class StringField : Interfaces.IControlField
     {
         private string HoldValue = "";
 
         public bool HasUpdated { get; set; }
 
-        public delegate void PropertyModified(string Value);
-        public event PropertyModified OnPropertyModified;
-
-        public delegate void PropertyFinishedEditing(string Value);
-        public event PropertyFinishedEditing OnPropertyFinishedEditing;
+        public event ControlModified OnControlModified;
+        public event ControlFinishedEditing OnControlFinishedEditing;
 
         public StringField()
         {
@@ -80,14 +78,14 @@ namespace AutoFormGenerator.UserControls.Controls
             {
                 formControlSettings.SetValue(ValueTextBox.Text);
 
-                OnPropertyModified?.Invoke(ValueTextBox.Text);
+                OnControlModified?.Invoke(ValueTextBox.Text);
             };
 
             ValueTextBox.LostKeyboardFocus += (sender, args) =>
             {
                 if (HasUpdated)
                 {
-                    OnPropertyFinishedEditing?.Invoke(ValueTextBox.Text);
+                    OnControlFinishedEditing?.Invoke(ValueTextBox.Text);
                 }
             };
         }
@@ -170,6 +168,11 @@ namespace AutoFormGenerator.UserControls.Controls
             }
 
             return Valid;
+        }
+
+        public object GetValue()
+        {
+            return ValueTextBox.Text;
         }
 
     }

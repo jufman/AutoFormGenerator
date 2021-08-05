@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using AutoFormGenerator.Events;
 using AutoFormGenerator.Object;
 
 namespace AutoFormGenerator.UserControls.Controls
@@ -8,13 +9,10 @@ namespace AutoFormGenerator.UserControls.Controls
     /// <summary>
     /// Interaction logic for DropdownField.xaml
     /// </summary>
-    public partial class DropdownField : UserControl
+    public partial class DropdownField : UserControl, Interfaces.IControlField
     {
-        public delegate void PropertyModified(string Value);
-        public event PropertyModified OnPropertyModified;
-
-        public delegate void PropertyFinishedEditing(string Value);
-        public event PropertyFinishedEditing OnPropertyFinishedEditing;
+        public event ControlModified OnControlModified;
+        public event ControlFinishedEditing OnControlFinishedEditing;
 
         public DropdownField()
         {
@@ -73,10 +71,27 @@ namespace AutoFormGenerator.UserControls.Controls
             {
                 var selectedItem = (ComboBoxItem)SelectComboBox.SelectedItem;
                 formControlSettings.SetValue(selectedItem.Tag.ToString());
-                OnPropertyModified?.Invoke( selectedItem.Tag.ToString());
-                OnPropertyFinishedEditing?.Invoke(selectedItem.Tag.ToString());
+                OnControlModified?.Invoke( selectedItem.Tag.ToString());
+                OnControlFinishedEditing?.Invoke(selectedItem.Tag.ToString());
             };
         }
+
+        public void BuildDisplay(FormControlSettings formControlSettings)
+        {
+
+        }
+
+        public bool Validate()
+        {
+            return true;
+        }
+
+        public object GetValue()
+        {
+            var selectedItem = (ComboBoxItem)SelectComboBox.SelectedItem;
+            return selectedItem.Tag;
+        }
+
 
         public class DropdownItem
         {

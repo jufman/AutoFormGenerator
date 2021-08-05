@@ -82,6 +82,11 @@ namespace TestApp
                     {
                         Value = "Plane",
                         DisplayValue = "Plane"
+                    },
+                    new FormDropdownItem()
+                    {
+                        Value = "Train",
+                        DisplayValue = "Train"
                     }
                 });
 
@@ -100,6 +105,11 @@ namespace TestApp
                     {
                         Value = 1.0,
                         DisplayValue = "cap"
+                    },
+                    new FormDropdownItem()
+                    {
+                        Value = 2.0,
+                        DisplayValue = "are"
                     }
                 });
 

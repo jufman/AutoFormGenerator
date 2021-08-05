@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using AutoFormGenerator.Events;
 using AutoFormGenerator.Object;
 
 namespace AutoFormGenerator.UserControls.Controls
@@ -10,16 +11,13 @@ namespace AutoFormGenerator.UserControls.Controls
     /// <summary>
     /// Interaction logic for FloatField.xaml
     /// </summary>
-    public partial class FloatField : UserControl
+    public partial class FloatField : UserControl, Interfaces.IControlField
     {
         private string HoldValue = "";
         public bool HasUpdated { get; set; }
 
-        public delegate void PropertyModified(float Value);
-        public event PropertyModified OnPropertyModified;
-
-        public delegate void PropertyFinishedEditing(float Value);
-        public event PropertyFinishedEditing OnPropertyFinishedEditing;
+        public event ControlModified OnControlModified;
+        public event ControlFinishedEditing OnControlFinishedEditing;
 
         public FloatField()
         {
@@ -90,7 +88,7 @@ namespace AutoFormGenerator.UserControls.Controls
                 if (float.TryParse(ValueTextBox.Text, out var floatValue))
                 {
                     formControlSettings.SetValue(floatValue);
-                    OnPropertyModified?.Invoke(floatValue);
+                    OnControlModified?.Invoke(floatValue);
                 }
             };
 
@@ -98,7 +96,7 @@ namespace AutoFormGenerator.UserControls.Controls
             {
                 if (HasUpdated && float.TryParse(ValueTextBox.Text, out var floatValue))
                 {
-                    OnPropertyFinishedEditing?.Invoke(floatValue);
+                    OnControlFinishedEditing?.Invoke(floatValue);
                 }
             };
         }
@@ -127,6 +125,11 @@ namespace AutoFormGenerator.UserControls.Controls
             }
 
             return Valid;
+        }
+
+        public object GetValue()
+        {
+            return ValueTextBox.Text;
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using AutoFormGenerator.Events;
+using AutoFormGenerator.Interfaces;
 using AutoFormGenerator.Object;
 
 namespace AutoFormGenerator.UserControls.Controls
@@ -7,13 +9,10 @@ namespace AutoFormGenerator.UserControls.Controls
     /// <summary>
     /// Interaction logic for BooleanField.xaml
     /// </summary>
-    public partial class BooleanField : UserControl
+    public partial class BooleanField : UserControl, Interfaces.IControlField
     {
-        public delegate void PropertyModified(bool? Value);
-        public event PropertyModified OnPropertyModified;
-
-        public delegate void PropertyFinishedEditing(bool? Value);
-        public event PropertyFinishedEditing OnPropertyFinishedEditing;
+        public event ControlModified OnControlModified;
+        public event ControlFinishedEditing OnControlFinishedEditing;
 
         public BooleanField()
         {
@@ -56,22 +55,26 @@ namespace AutoFormGenerator.UserControls.Controls
             ValueCheckBox.Checked += (sen, e) =>
             {
                 formControlSettings.SetValue(ValueCheckBox.IsChecked);
-                OnPropertyModified?.Invoke(ValueCheckBox.IsChecked);
-                OnPropertyFinishedEditing?.Invoke(ValueCheckBox.IsChecked);
+                OnControlModified?.Invoke(ValueCheckBox.IsChecked);
+                OnControlFinishedEditing?.Invoke(ValueCheckBox.IsChecked);
             };
 
             ValueCheckBox.Unchecked += (sen, e) =>
             {
                 formControlSettings.SetValue(ValueCheckBox.IsChecked);
-                OnPropertyModified?.Invoke(ValueCheckBox.IsChecked);
-                OnPropertyFinishedEditing?.Invoke(ValueCheckBox.IsChecked);
+                OnControlModified?.Invoke(ValueCheckBox.IsChecked);
+                OnControlFinishedEditing?.Invoke(ValueCheckBox.IsChecked);
             };
         }
 
         public bool Validate()
         {
-
             return true;
+        }
+
+        public object GetValue()
+        {
+            return ValueCheckBox.IsChecked;
         }
     }
 }

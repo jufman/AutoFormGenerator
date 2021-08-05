@@ -29,6 +29,7 @@ namespace TestApp.Controls
 
         public event PropertyModified OnPropertyModified;
         public event PropertyFinishedEditing OnPropertyFinishedEditing;
+
         public void SetValue(object Value)
         {
             var floatValue = Value as float? ?? 0;
@@ -53,6 +54,16 @@ namespace TestApp.Controls
         private void Slider_OnPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             OnPropertyFinishedEditing?.Invoke("", Convert.ToSingle(Slider.Value / 100));
+        }
+
+        public object GetValue()
+        {
+            return Convert.ToSingle(Slider.Value / 100);
+        }
+
+        public bool Validate()
+        {
+            return true;
         }
     }
 }

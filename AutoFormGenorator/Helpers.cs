@@ -38,32 +38,7 @@ namespace AutoFormGenerator
             return propertyInfo;
         }
 
-
-        public static void HandleFieldConditions(List<FieldCondition> FieldConditions, Type classType, string name, object value, UserControl control)
-        {
-            FieldConditions.ForEach(condition =>
-            {
-
-            });
-
-            if (FieldCondition != null)
-            {
-                var filedName = classType.FullName + "." + FieldCondition.Field;
-                if (name == filedName)
-                {
-                    if (Helpers.CanConditionalDisplay(FieldCondition, value) == false)
-                    {
-                        control.Visibility = Visibility.Collapsed;
-                    }
-                    else
-                    {
-                        control.Visibility = Visibility.Visible;
-                    }
-                }
-            }
-        }
-
-        private static bool CanConditionalDisplay(FieldCondition condition, object fieldValue)
+        public static bool CanConditionalDisplay(FieldCondition condition, object fieldValue)
         {
             if (fieldValue == null)
             {
@@ -74,6 +49,12 @@ namespace AutoFormGenerator
             {
                 case Operators.Equals:
                     if (condition.Value.ToString() != fieldValue.ToString())
+                    {
+                        return false;
+                    }
+                    break;
+                case Operators.NotEquals:
+                    if (condition.Value.ToString() == fieldValue.ToString())
                     {
                         return false;
                     }

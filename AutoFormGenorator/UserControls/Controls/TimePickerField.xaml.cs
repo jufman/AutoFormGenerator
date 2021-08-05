@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using AutoFormGenerator.Events;
 using AutoFormGenerator.Object;
 
 namespace AutoFormGenerator.UserControls.Controls
@@ -19,13 +20,10 @@ namespace AutoFormGenerator.UserControls.Controls
     /// <summary>
     /// Interaction logic for TimePickerField.xaml
     /// </summary>
-    public partial class TimePickerField : UserControl
+    public partial class TimePickerField : Interfaces.IControlField
     {
-        public delegate void PropertyModified(object Value);
-        public event PropertyModified OnPropertyModified;
-
-        public delegate void PropertyFinishedEditing(object Value);
-        public event PropertyFinishedEditing OnPropertyFinishedEditing;
+        public event ControlModified OnControlModified;
+        public event ControlFinishedEditing OnControlFinishedEditing;
 
         private double HoldValue = 0;
         public bool HasUpdated { get; set; }
@@ -93,9 +91,20 @@ namespace AutoFormGenerator.UserControls.Controls
 
                 formControlSettings.SetValue(CurrentValue);
 
-                OnPropertyModified?.Invoke(CurrentValue);
-                OnPropertyFinishedEditing?.Invoke(CurrentValue);
+                OnControlModified?.Invoke(CurrentValue);
+                OnControlFinishedEditing?.Invoke(CurrentValue);
             };
+        }
+
+        public bool Validate()
+        {
+            return true;
+        }
+
+        public object GetValue()
+        {
+            var CurrentValue = TimePicker.SelectedTime?.TimeOfDay.TotalSeconds ?? 0;
+            return CurrentValue;
         }
     }
 }

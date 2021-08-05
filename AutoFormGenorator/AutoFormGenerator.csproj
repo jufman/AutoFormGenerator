@@ -61,6 +61,7 @@
     <Compile Include="Events\ChangeEvents.cs" />
     <Compile Include="Events\ViladateEvents.cs" />
     <Compile Include="Helpers.cs" />
+    <Compile Include="Interfaces\IControlField.cs" />
     <Compile Include="Interfaces\ICustomControl.cs" />
     <Compile Include="Logic.cs" />
     <Compile Include="Object\FieldInsert.cs" />

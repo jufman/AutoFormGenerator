@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using AutoFormGenerator.Events;
 using AutoFormGenerator.Object;
 
 namespace AutoFormGenerator.UserControls.Controls
@@ -10,16 +11,13 @@ namespace AutoFormGenerator.UserControls.Controls
     /// <summary>
     /// Interaction logic for DoubleField.xaml
     /// </summary>
-    public partial class DoubleField : UserControl
+    public partial class DoubleField : UserControl, Interfaces.IControlField
     {
         private string HoldValue = "";
         public bool HasUpdated { get; set; }
 
-        public delegate void PropertyModified(double Value);
-        public event PropertyModified OnPropertyModified;
-
-        public delegate void PropertyFinishedEditing(double Value);
-        public event PropertyFinishedEditing OnPropertyFinishedEditing;
+        public event ControlModified OnControlModified;
+        public event ControlFinishedEditing OnControlFinishedEditing;
 
         public DoubleField()
         {
@@ -90,7 +88,7 @@ namespace AutoFormGenerator.UserControls.Controls
                 if (double.TryParse(ValueTextBox.Text, out var doubleValue))
                 {
                     formControlSettings.SetValue(doubleValue);
-                    OnPropertyModified?.Invoke(doubleValue);
+                    OnControlModified?.Invoke(doubleValue);
                 }
             };
 
@@ -98,7 +96,7 @@ namespace AutoFormGenerator.UserControls.Controls
             {
                 if (HasUpdated && double.TryParse(ValueTextBox.Text, out var doubleValue))
                 {
-                    OnPropertyFinishedEditing?.Invoke(doubleValue);
+                    OnControlFinishedEditing?.Invoke(doubleValue);
                 }
             };
         }
@@ -127,6 +125,11 @@ namespace AutoFormGenerator.UserControls.Controls
             }
 
             return Valid;
+        }
+
+        public object GetValue()
+        {
+            return ValueTextBox.Text;
         }
     }
 }
