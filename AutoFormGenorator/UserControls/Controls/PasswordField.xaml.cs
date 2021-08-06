@@ -106,7 +106,7 @@ namespace AutoFormGenerator.UserControls.Controls
 
             if (Valid)
             {
-                ValuePasswordBox.BorderBrush = Brushes.Black;
+                ValuePasswordBox.BorderBrush = (Brush)new BrushConverter().ConvertFromString("#FFABABAB");
             }
             else
             {

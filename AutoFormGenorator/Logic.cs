@@ -626,6 +626,11 @@ namespace AutoFormGenerator
 
                     specialDropdown.BuildDisplay(formControlSettings);
 
+                    if (formControlSettings.Required)
+                    {
+                        OnValidate += specialDropdown.Validate;
+                    }
+
                     OnAddSpecialDropdownItems += (Name, Items) =>
                     {
                         if (Name == formControlSettings.FieldName)

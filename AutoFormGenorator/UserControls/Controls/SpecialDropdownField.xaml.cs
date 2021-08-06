@@ -94,7 +94,19 @@ namespace AutoFormGenerator.UserControls.Controls
 
         public bool Validate()
         {
-            return true;
+            var selectedItem = (ComboBoxItem)SelectComboBox.SelectedItem;
+            var Valid = selectedItem != null;
+
+            if (Valid)
+            {
+                SelectComboBox.BorderBrush = (Brush)new BrushConverter().ConvertFromString("#FFABABAB");
+            }
+            else
+            {
+                SelectComboBox.BorderBrush = Brushes.Red;
+            }
+
+            return Valid;
         }
 
         public object GetValue()

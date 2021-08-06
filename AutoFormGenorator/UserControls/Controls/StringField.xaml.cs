@@ -160,7 +160,7 @@ namespace AutoFormGenerator.UserControls.Controls
 
             if (Valid)
             {
-                ValueTextBox.BorderBrush = Brushes.Black;
+                ValueTextBox.BorderBrush = (Brush)new BrushConverter().ConvertFromString("#FFABABAB");
             }
             else
             {

@@ -38,7 +38,7 @@ namespace TestApp.Objects
         [FieldCondition(Field = "ShowNow", Operator = Operators.Equals, Value = true, IsOr = true)]
         public string TestPassword { get; set; } = "";
 
-        [FormField(ObjectTypeName = ObjectTypes.SpecialDropdown)]
+        [FormField(ObjectTypeName = ObjectTypes.SpecialDropdown, Required = true)]
         public string TestDropDown { get; set; }
 
         [FormField]
