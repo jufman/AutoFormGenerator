@@ -3,21 +3,34 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="AFG_MessageBox" Height="auto" Width="auto" Background="#303030" SizeToContent="WidthAndHeight" ResizeMode="NoResize" MinHeight="100" WindowStartupLocation="CenterScreen" MinWidth="300">
+        Title="AFG_MessageBox" Height="auto" Width="auto" Background="#303030" SizeToContent="WidthAndHeight" ResizeMode="NoResize" MinHeight="100" MinWidth="300" MaxHeight="200" WindowStartupLocation="CenterScreen" BorderBrush="DarkGray" WindowStyle="None" AllowsTransparency="True" BorderThickness="2">
     <Grid Height="auto" Width="auto" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <Grid.RowDefinitions>
+            <RowDefinition Height="25"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
 
-        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="20,20,20,20" Grid.Row="0" MaxWidth="400">
-            <TextBlock TextWrapping="Wrap" x:Name="MessageTextBlock" Foreground="#FFFFFF" FontSize="16" Text="" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,0,0" Height="auto"/>
+        <Grid Grid.Row="0" Background="DarkGray">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="25"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock FontSize="17" Foreground="#FFFFFF" Text="This is some" FontWeight="Bold" x:Name="TitleLabel" VerticalAlignment="Top" Margin="5,0,0,0" Grid.Column="0" MouseLeftButtonDown="UIElement_OnMouseLeftButtonDown"/>
+            <Grid HorizontalAlignment="Right" Background="Transparent" Cursor="Hand" x:Name="CloseIconGrid" MouseLeftButtonUp="CloseIconGrid_OnMouseLeftButtonUp" Grid.Column="1" >
+                <materialDesign:PackIcon Kind="Close" Height="20" Width="20" VerticalAlignment="Center" HorizontalAlignment="Right" Cursor="Hand" Margin="0,0,5,0" Background="Transparent" x:Name="DeleteItemIcon" Foreground="#FFFFFF"  />
+            </Grid>
         </Grid>
 
-        <Grid Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Center" >
+        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="20,20,20,20" Grid.Row="1" MaxWidth="400" >
+            <TextBlock TextWrapping="Wrap" x:Name="MessageTextBlock" Foreground="#FFFFFF" FontSize="16" Text="Ths is some text" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,0,0" Height="auto"/>
+        </Grid>
+
+        <Grid Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" >
             <WrapPanel>
-                <Button Content="Ok" x:Name="OkButton" Width="120" HorizontalAlignment="Left"  Foreground="White" Background="Transparent" Click="OkButton_Click"  Margin="0,0,10,0"/>
+                <Button Content="Ok" x:Name="OkButton" Width="120" HorizontalAlignment="Left"  Foreground="White" Background="Transparent" Click="OkButton_Click"  Margin="0,0,10,0" Height="30"/>
             </WrapPanel>
         </Grid>
     </Grid>

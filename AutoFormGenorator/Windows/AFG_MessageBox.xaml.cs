@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Input;
 
 namespace AutoFormGenerator.Windows
 {
@@ -13,7 +14,7 @@ namespace AutoFormGenerator.Windows
         {
             InitializeComponent();
 
-            this.Title = Title;
+            TitleLabel.Text = Title;
             MessageTextBlock.Text = Message;
         }
 
@@ -26,6 +27,16 @@ namespace AutoFormGenerator.Windows
         private void NoButton_Click(object sender, RoutedEventArgs e)
         {
             MessageBoxResult = MessageBoxResult.No;
+            this.Close();
+        }
+
+        private void UIElement_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            this.DragMove();
+        }
+
+        private void CloseIconGrid_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
             this.Close();
         }
     }

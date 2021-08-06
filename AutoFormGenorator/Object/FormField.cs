@@ -19,7 +19,6 @@ namespace AutoFormGenerator.Object
 
         public Type CustomControl { get; set; }
 
-        public Type DropDownClass { get; set; }
         public Type NestedClassType { get; set; } = null;
         public Type NestedListClassType { get; set; } = null;
     }
@@ -46,10 +45,7 @@ namespace AutoFormGenerator.Object
     {
         NestedSettings,
         NestedList,
-        NestedMulitNode,
-        Prop,
-        MultiProp,
-        NestedItems
+        Prop
     }
 
     public enum ObjectTypes
@@ -60,8 +56,6 @@ namespace AutoFormGenerator.Object
         Int32,
         Single,
         Boolean,
-        //ColourPicker,
-        ObjectDropdown,
         SpecialDropdown,
         FolderBrowser,
         TimePicker,

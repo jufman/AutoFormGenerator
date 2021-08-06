@@ -7,11 +7,12 @@ using AutoFormGenerator.Object;
 
 namespace TestApp.Objects
 {
-    [FormClass(WindthOveride = true, DisplayName = "Shrink Class", FormValueWidth = 50)]
+    [FormClass(WidthOverride = true, DisplayName = "Shrink Class", FormValueWidth = 50)]
     public class ShrinkClass
     {
         [FormField(Required = true, ControlWidth = 200, DisplayName = "Test String")]
         public string TestString { get; set; } = "";
+
         [FormField(ToolTip = "You might need this ")]
         public bool TestBool { get; set; }
 

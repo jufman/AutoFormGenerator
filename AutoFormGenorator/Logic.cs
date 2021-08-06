@@ -33,10 +33,7 @@ namespace AutoFormGenerator
         private delegate void SpecialDropdownDisplaying(string FieldName, AddSpecialDropdownItems addSpecialDropdownItems);
         private event SpecialDropdownDisplaying OnSpecialDropdownDisplaying;
 
-        private delegate void FieldInsertDisplaying(string FieldName);
-        private event FieldInsertDisplaying OnFieldInsertDisplaying;
-
-        public Dictionary<string, IControlField> ControlFields = new Dictionary<string, IControlField>();
+        private Dictionary<string, IControlField> ControlFields = new Dictionary<string, IControlField>();
 
         public UserControls.FormControl formControl;
 
@@ -50,7 +47,7 @@ namespace AutoFormGenerator
             Helpers.ApplyMaterialDesignPack(formControl);
         }
 
-        public void SubscribeToPropertyModified<T>(string fieldName, Events.PropertyModified a)
+        public void SubscribeToFieldModified<T>(string fieldName, Events.PropertyModified a)
         {
             OnPropertyModified += (localFieldName, value) =>
             {
@@ -62,7 +59,7 @@ namespace AutoFormGenerator
             };
         }
 
-        public void SubscribeToOnPropertyFinishedEditing<T>(string fieldName, Events.PropertyModified a)
+        public void SubscribeToFieldFinishedEditing<T>(string fieldName, Events.PropertyModified a)
         {
             OnPropertyFinishedEditing += (localFieldName, value) =>
             {
@@ -74,7 +71,7 @@ namespace AutoFormGenerator
             };
         }
 
-        public void SubscribeToFieldFinishedEditing<T>(Events.PropertyModified a, params string[] fieldNames)
+        public void SubscribeToFieldsFinishedEditing<T>(Events.PropertyModified a, params string[] fieldNames)
         {
             OnPropertyFinishedEditing += (localFieldName, value) =>
             {
@@ -376,7 +373,7 @@ namespace AutoFormGenerator
                     valueWidth = formClass.FormValueWidth;
                 }
 
-                if (formClass.WindthOveride)
+                if (formClass.WidthOverride)
                 {
                     displayNameWidth = Double.NaN;
                 }
@@ -438,9 +435,7 @@ namespace AutoFormGenerator
 
             return null;
         }
-
-
-        public void HandleFieldConditions(List<FieldCondition> FieldConditions, Type classType, string name, object value, UserControl control)
+        private void HandleFieldConditions(List<FieldCondition> FieldConditions, Type classType, string name, object value, UserControl control)
         {
             var OrFieldConditions = FieldConditions.FindAll(condition => condition.IsOr).ToList();
             var AndFieldConditions = FieldConditions.FindAll(condition => condition.IsOr == false).ToList();
@@ -611,16 +606,6 @@ namespace AutoFormGenerator
 
                     userControl = booleanField;
                     break;
-                case ObjectTypes.ObjectDropdown:
-                    var dropdownField = new DropdownField();
-
-                    dropdownField.BuildDisplay(formControlSettings, BuildDropdownItems(formControlSettings.FormField.DropDownClass));
-
-                    dropdownField.OnControlModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
-                    dropdownField.OnControlFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
-
-                    userControl = dropdownField;
-                    break;
                 case ObjectTypes.SpecialDropdown:
                     var specialDropdown = new SpecialDropdownField();
 
@@ -678,9 +663,9 @@ namespace AutoFormGenerator
                     userControl = timePickerField;
                     break;
                 case ObjectTypes.Custom:
-                    if (formControlSettings.FormField.CustomControl != null && formControlSettings.FormField.CustomControl.GetInterface(typeof(Interfaces.ICustomControl).FullName) != null) 
+                    if (formControlSettings.FormField.CustomControl != null && formControlSettings.FormField.CustomControl.GetInterface(typeof(ICustomControl).FullName) != null) 
                     {
-                        var customControlClass = (Interfaces.ICustomControl)Activator.CreateInstance(formControlSettings.FormField.CustomControl);
+                        var customControlClass = (ICustomControl)Activator.CreateInstance(formControlSettings.FormField.CustomControl);
                         if (!(customControlClass is UserControl))
                         {
                             break;
@@ -699,37 +684,6 @@ namespace AutoFormGenerator
             }
 
             return userControl;
-        }
-
-        private List<DropdownField.DropdownItem> BuildDropdownItems(Type Class)
-        {
-            var dropClass = Activator.CreateInstance(Class);
-
-            var dropdownItems = new List<DropdownField.DropdownItem>();
-
-            var rawPropertyInfos = new List<PropertyInfo>(Class.GetProperties().Where(a => a.GetCustomAttributes<FormDropdownItem>().Count() != 0));
-
-            rawPropertyInfos.ForEach(prop =>
-            {
-                var formDropdownItem = prop.GetCustomAttribute<FormDropdownItem>();
-
-                var displayName = prop.Name;
-
-                if (formDropdownItem.DisplayValue != string.Empty)
-                {
-                    displayName = formDropdownItem.DisplayValue;
-                }
-
-                var value = (string) formDropdownItem.Value != string.Empty ? formDropdownItem.Value : prop.GetValue(dropClass).ToString();
-
-                dropdownItems.Add(new DropdownField.DropdownItem()
-                {
-                    Name = displayName,
-                    Value = value.ToString()
-                });
-            });
-
-            return dropdownItems;
         }
 
         public void PopulateSpecialDropdown<T>(string FieldName, List<FormDropdownItem> DropdownItems)
@@ -752,14 +706,6 @@ namespace AutoFormGenerator
             var objectType = typeof(T);
 
             OnAddFieldInsertItems?.Invoke(objectType.FullName + "." + FieldName, FieldInsertItems);
-
-            OnFieldInsertDisplaying += name =>
-            {
-                if (name == objectType.FullName + "." + FieldName)
-                {
-                    OnAddFieldInsertItems?.Invoke(objectType.FullName + "." + FieldName, FieldInsertItems);
-                }
-            };
         }
 
         private class WrapperClass

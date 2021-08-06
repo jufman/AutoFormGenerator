@@ -9,6 +9,6 @@ namespace AutoFormGenerator.Object
 
         public double FormValueWidth { get; set; } = -1;
 
-        public bool WindthOveride { get; set; }
+        public bool WidthOverride { get; set; }
     }
 }

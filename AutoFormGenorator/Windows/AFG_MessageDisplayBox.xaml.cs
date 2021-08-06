@@ -1,17 +1,18 @@
 ﻿using System.Windows;
+using System.Windows.Input;
 
 namespace AutoFormGenerator.Windows
 {
     /// <summary>
     /// Interaction logic for AFG_MessageDisplayBox.xaml
     /// </summary>
-    public partial class AFG_MessageDisplayBoxWindow : Window
+    partial class AFG_MessageDisplayBoxWindow : Window
     {
         public AFG_MessageDisplayBoxWindow(string Title, string Message)
         {
             InitializeComponent();
 
-            this.Title = Title;
+            TitleLabel.Text = Title;
             MessageTextBlock.Text = Message;
         }
 
@@ -19,13 +20,20 @@ namespace AutoFormGenerator.Windows
         {
             this.Close();
         }
-    }
 
-    public static class AFG_MessageDisplayBox
-    {
         public static void Show(string Message)
         {
             new AFG_MessageDisplayBoxWindow("Message", Message).ShowDialog();
+        }
+
+        private void UIElement_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            this.DragMove();
+        }
+
+        private void CloseIconGrid_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            this.Close();
         }
     }
 }

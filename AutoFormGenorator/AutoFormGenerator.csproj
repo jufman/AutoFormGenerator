@@ -88,9 +88,6 @@
     <Compile Include="UserControls\Controls\SpecialDropdownField.xaml.cs">
       <DependentUpon>SpecialDropdownField.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UserControls\Controls\DropdownField.xaml.cs">
-      <DependentUpon>DropdownField.xaml</DependentUpon>
-    </Compile>
     <Compile Include="UserControls\Controls\FloatField.xaml.cs">
       <DependentUpon>FloatField.xaml</DependentUpon>
     </Compile>
@@ -152,10 +149,6 @@
     <Page Include="UserControls\Controls\SpecialDropdownField.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
-    <Page Include="UserControls\Controls\DropdownField.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UserControls\Controls\FloatField.xaml">
       <SubType>Designer</SubType>

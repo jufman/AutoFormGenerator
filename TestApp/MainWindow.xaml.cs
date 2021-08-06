@@ -202,10 +202,22 @@ namespace TestApp
                 });
 
 
-                AFG.SubscribeToOnPropertyFinishedEditing<Objects.MainClass>("TestString", (name, value) =>
+                AFG.SubscribeToFieldFinishedEditing<Objects.MainClass>("TestString", (name, value) =>
                 {
                     MessageBox.Show("Changed!!");
                 });
+
+
+                AFG.SubscribeToFieldModified<Objects.MainClass>("TestString", (name, value) =>
+                {
+                    MessageBox.Show("Edit");
+                });
+
+                AFG.SubscribeToFieldsFinishedEditing<Objects.MainClass>((name, value) =>
+                {
+                    MessageBox.Show("Multi Changed");
+
+                }, "TestString", "TestInt");
 
                 ContentStackPanel.Children.Add(AFG.formControl);
 
@@ -245,5 +257,15 @@ namespace TestApp
         }
 
 
+        private void MessageBoxButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            var md = new AutoFormGenerator.Windows.AFG_MessageBox("Tester", "This is a message");
+            md.ShowDialog();
+        }
+
+        private void DisplayBoxButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            AutoFormGenerator.Windows.AFG_MessageDisplayBoxWindow.Show("This is a test");
+        }
     }
 }

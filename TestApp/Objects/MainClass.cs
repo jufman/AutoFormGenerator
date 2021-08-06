@@ -52,6 +52,10 @@ namespace TestApp.Objects
         public string AndDisplay { get; set; } = "";
 
 
+        [FormField(ObjectTypeName = ObjectTypes.FolderBrowser)]
+        public string FolderLocation { get; set; } = "";
+
+
         [FormField(Type = Types.NestedSettings)]
         public NestedClass NestedClass { get; set; }
 
@@ -60,13 +64,7 @@ namespace TestApp.Objects
         public ShrinkClass ShrinkClass { get; set; }
 
         [FormField]
-        public List<ExtendClass> ExtendClasses { get; set; } = new List<ExtendClass>()
-        {
-            new ExtendClass()
-            {
-                Act = "car"
-            }
-        };
+        public List<ExtendClass> ExtendClasses { get; set; } = new List<ExtendClass>();
 
     }
 }

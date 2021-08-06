@@ -20,6 +20,8 @@
             <Label Content="Total Load Time: " Height="30" Margin="50,8,0,0" x:Name="LoadTimeLabel" />
             <Button Content="Validate" HorizontalAlignment="Left" Margin="23,10,0,0" VerticalAlignment="Top" Width="75" x:Name="ValidateButton" Click="ValidateButton_OnClick"/>
             <Button Content="Extend" HorizontalAlignment="Left" Margin="23,10,0,0" VerticalAlignment="Top" Width="75" x:Name="ExtendButton" Click="ExtendButton_OnClick"/>
+            <Button Content="Message Box" HorizontalAlignment="Left" Margin="23,10,0,0" VerticalAlignment="Top" Width="85" x:Name="MessageBoxButton" Click="MessageBoxButton_OnClick"/>
+            <Button Content="Display Box" HorizontalAlignment="Left" Margin="23,10,0,0" VerticalAlignment="Top" Width="85" x:Name="DisplayBoxButton" Click="DisplayBoxButton_OnClick"/>
         </WrapPanel>
 
         <ScrollViewer x:Name="ContentScrollViewer" Grid.Row="1">
