@@ -10,7 +10,7 @@ namespace TestApp.Objects
     public class ExtendClass
     {
         [FormField(Order = 4, ObjectTypeName = ObjectTypes.SpecialDropdown)]
-        public double Act { get; set; } = 1;
+        public string Act { get; set; } = "";
 
     }
 }

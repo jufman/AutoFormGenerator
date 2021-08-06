@@ -25,6 +25,103 @@ namespace TestApp
     {
         private List<AutoFormGenerator.Logic> afgLogics = new List<Logic>();
 
+        private List<string> RandomList1 = new List<string>()
+        {
+            "approval",
+            "honor",
+            "confusion",
+            "velvet",
+            "wall",
+            "issue",
+            "problem",
+            "quotation",
+            "suggest",
+            "ribbon"
+        };
+
+        private List<string> RandomList2 = new List<string>()
+        {
+            "chaunting",
+            "autosymbolically",
+            "teaspoonfuls",
+            "spermatogemma",
+            "charqui",
+            "ophiuchus",
+            "volutes",
+            "intervisitation",
+            "longingly",
+            "unadjoined",
+        };
+
+        private List<string> Cars = new List<string>()
+        {
+            "Abarth",
+            "Alfa Romeo",
+            "Aston Martin",
+            "Audi",
+            "Bentley",
+            "BMW",
+            "Bugatti",
+            "Cadillac",
+            "Chevrolet",
+            "Chrysler",
+            "Citroën",
+            "Dacia",
+            "Daewoo",
+            "Daihatsu",
+            "Dodge",
+            "Donkervoort",
+            "DS",
+            "Ferrari",
+            "Fiat",
+            "Fisker",
+            "Ford",
+            "Honda",
+            "Hummer",
+            "Hyundai",
+            "Infiniti",
+            "Iveco",
+            "Jaguar",
+            "Jeep",
+            "Kia",
+            "KTM",
+            "Lada",
+            "Lamborghini",
+            "Lancia",
+            "Land Rover",
+            "Landwind",
+            "Lexus",
+            "Lotus",
+            "Maserati",
+            "Maybach",
+            "Mazda",
+            "McLaren",
+            "Mercedes-Benz",
+            "MG",
+            "Mini",
+            "Mitsubishi",
+            "Morgan",
+            "Nissan",
+            "Opel",
+            "Peugeot",
+            "Porsche",
+            "Renault",
+            "Rolls-Royce",
+            "Rover",
+            "Saab",
+            "Seat",
+            "Skoda",
+            "Smart",
+            "SsangYong",
+            "Subaru",
+            "Suzuki",
+            "Tesla",
+            "Toyota",
+            "Volkswagen",
+            "Volvo"
+        };
+
+
         public MainWindow()
         {
             InitializeComponent();
@@ -61,34 +158,18 @@ namespace TestApp
 
                 AFG.BuildFormControl(new Objects.MainClass());
 
-                AFG.PopulateSpecialDropdown<Objects.MainClass>("TestDropDown", new List<FormDropdownItem>
+                var CarItems = new List<FormDropdownItem>();
+
+                Cars.ForEach(s =>
                 {
-                    new FormDropdownItem()
+                    CarItems.Add(new FormDropdownItem()
                     {
-                        Value = "Car",
-                        DisplayValue = "Car"
-                    },
-                    new FormDropdownItem()
-                    {
-                        Value = "Bus",
-                        DisplayValue = "Bus"
-                    },
-                    new FormDropdownItem()
-                    {
-                        Value = "Bike",
-                        DisplayValue = "Bike"
-                    },
-                    new FormDropdownItem()
-                    {
-                        Value = "Plane",
-                        DisplayValue = "Plane"
-                    },
-                    new FormDropdownItem()
-                    {
-                        Value = "Train",
-                        DisplayValue = "Train"
-                    }
+                        DisplayValue = s,
+                        Value = s
+                    });
                 });
+
+                AFG.PopulateSpecialDropdown<Objects.MainClass>("TestDropDown", CarItems);
 
                 AFG.PopulateSpecialDropdown<Objects.MainClass>("Act", new List<FormDropdownItem>
                 {
@@ -99,19 +180,17 @@ namespace TestApp
                     }
                 });
 
-                AFG.PopulateSpecialDropdown<Objects.ExtendClass>("Act", new List<FormDropdownItem>
+                var ActItems = new List<FormDropdownItem>();
+                RandomList1.ForEach(s =>
                 {
-                    new FormDropdownItem()
+                    ActItems.Add(new FormDropdownItem()
                     {
-                        Value = 1.0,
-                        DisplayValue = "cap"
-                    },
-                    new FormDropdownItem()
-                    {
-                        Value = 2.0,
-                        DisplayValue = "are"
-                    }
+                        DisplayValue = s,
+                        Value = s
+                    });
                 });
+
+                AFG.PopulateSpecialDropdown<Objects.ExtendClass>("Act", ActItems);
 
                 AFG.PopulateFieldInsertItems<Objects.MainClass>("TestString", new List<FieldInsert>
                 {
@@ -150,19 +229,21 @@ namespace TestApp
         {
             afgLogics.ForEach(AFG =>
             {
-                AFG.PopulateSpecialDropdown<Objects.ExtendClass>("Act", new List<FormDropdownItem>
+                var ActItems = new List<FormDropdownItem>();
+                RandomList2.ForEach(s =>
                 {
-                    new FormDropdownItem()
+                    ActItems.Add(new FormDropdownItem()
                     {
-                        Value = 1.0,
-                        DisplayValue = "Critter"
-                    }, new FormDropdownItem()
-                    {
-                        Value = 1.0,
-                        DisplayValue = "Dog"
-                    }
+                        DisplayValue = s,
+                        Value = s
+                    });
                 });
+
+                AFG.PopulateSpecialDropdown<Objects.ExtendClass>("Act", ActItems);
+
             });
         }
+
+
     }
 }

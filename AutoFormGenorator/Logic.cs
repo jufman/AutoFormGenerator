@@ -30,7 +30,7 @@ namespace AutoFormGenerator
         private delegate void AddFieldInsertItems(string FieldName, List<FieldInsert> FieldInsertItems);
         private event AddFieldInsertItems OnAddFieldInsertItems;
 
-        private delegate void SpecialDropdownDisplaying(string FieldName);
+        private delegate void SpecialDropdownDisplaying(string FieldName, AddSpecialDropdownItems addSpecialDropdownItems);
         private event SpecialDropdownDisplaying OnSpecialDropdownDisplaying;
 
         private delegate void FieldInsertDisplaying(string FieldName);
@@ -532,7 +532,7 @@ namespace AutoFormGenerator
                         }
                     };
 
-                    OnSpecialDropdownDisplaying?.Invoke(formControlSettings.FieldName);
+                    //OnSpecialDropdownDisplaying?.Invoke(formControlSettings.FieldName);
 
                     userControl = stringField;
                     break;
@@ -634,7 +634,13 @@ namespace AutoFormGenerator
                         }
                     };
 
-                    OnSpecialDropdownDisplaying?.Invoke(formControlSettings.FieldName);
+                    OnSpecialDropdownDisplaying?.Invoke(formControlSettings.FieldName, (Name, Items) =>
+                    {
+                        if (Name == formControlSettings.FieldName)
+                        {
+                            specialDropdown.AddDropdownItems(Items, formControlSettings.Value);
+                        }
+                    });
 
                     specialDropdown.OnControlModified += s => OnPropertyModified?.Invoke(formControlSettings.FieldName, s);
                     specialDropdown.OnControlFinishedEditing += s => OnPropertyFinishedEditing?.Invoke(formControlSettings.FieldName, s);
@@ -727,11 +733,11 @@ namespace AutoFormGenerator
 
             OnAddSpecialDropdownItems?.Invoke(objectType.FullName + "." + FieldName, DropdownItems);
 
-            OnSpecialDropdownDisplaying += name =>
+            OnSpecialDropdownDisplaying += (name, act) =>
             {
                 if (name == objectType.FullName + "." + FieldName)
                 {
-                    OnAddSpecialDropdownItems?.Invoke(objectType.FullName + "." + FieldName, DropdownItems);
+                    act.Invoke(objectType.FullName + "." + FieldName, DropdownItems);
                 }
             };
         }

@@ -64,7 +64,7 @@ namespace TestApp.Objects
         {
             new ExtendClass()
             {
-                Act = 2.0
+                Act = "car"
             }
         };
 
