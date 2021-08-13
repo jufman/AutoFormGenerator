@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System;
+using System.Text.RegularExpressions;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -22,6 +24,8 @@ namespace AutoFormGenerator.UserControls.Controls
         public event ControlModified OnControlModified;
         public event ControlFinishedEditing OnControlFinishedEditing;
 
+        private FormControlSettings _formControlSettings;
+
         public PasswordField()
         {
             InitializeComponent();
@@ -43,6 +47,8 @@ namespace AutoFormGenerator.UserControls.Controls
 
         public void BuildDisplay(FormControlSettings formControlSettings)
         {
+            _formControlSettings = formControlSettings;
+
             SetVisibility(formControlSettings.IsVisible);
 
             Width = formControlSettings.ControlWidth;
@@ -146,6 +152,22 @@ namespace AutoFormGenerator.UserControls.Controls
         public void SetVisibility(bool IsVisible)
         {
             this.Visibility = IsVisible ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void ValuePasswordBox_OnPreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            var Handled = _formControlSettings.Regex != String.Empty && !Regex.IsMatch(ValueTextBox.Text + e.Text, _formControlSettings.Regex);
+
+            if (Handled)
+            {
+                ValueTextBox.CaretBrush = Brushes.Red;
+            }
+            else
+            {
+                ValueTextBox.CaretBrush = (Brush)new BrushConverter().ConvertFromString("#FFABABAB");
+            }
+
+            e.Handled = Handled;
         }
     }
 }

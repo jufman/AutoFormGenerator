@@ -1,0 +1,164 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B40C0A51-9A00-45DD-B752-F946EC4721AC}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>AutoFormGenerator</RootNamespace>
+    <AssemblyName>AutoFormGenerator</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Authors>Justin Campbell</Authors>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Events\ChangeEvents.cs" />
+    <Compile Include="Events\ViladateEvents.cs" />
+    <Compile Include="Helpers.cs" />
+    <Compile Include="Interfaces\IControlField.cs" />
+    <Compile Include="Interfaces\ICustomControl.cs" />
+    <Compile Include="Logic.cs" />
+    <Compile Include="Object\FieldInsert.cs" />
+    <Compile Include="Object\FormClass.cs" />
+    <Compile Include="Object\FormControlSettings.cs" />
+    <Compile Include="Object\FormDropdownItem.cs" />
+    <Compile Include="Object\FormField.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UserControls\Card.xaml.cs">
+      <DependentUpon>Card.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\Controls\BooleanField.xaml.cs">
+      <DependentUpon>BooleanField.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\Controls\ColourPickerField.xaml.cs">
+      <DependentUpon>ColourPickerField.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\Controls\CustomControlBase.xaml.cs">
+      <DependentUpon>CustomControlBase.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\Controls\DoubleField.xaml.cs">
+      <DependentUpon>DoubleField.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\Controls\SpecialDropdownField.xaml.cs">
+      <DependentUpon>SpecialDropdownField.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\Controls\FloatField.xaml.cs">
+      <DependentUpon>FloatField.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\Controls\FolderBrowserField.xaml.cs">
+      <DependentUpon>FolderBrowserField.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\Controls\IntField.xaml.cs">
+      <DependentUpon>IntField.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\Controls\PasswordField.xaml.cs">
+      <DependentUpon>PasswordField.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\Controls\StringField.xaml.cs">
+      <DependentUpon>StringField.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\Controls\TimePickerField.xaml.cs">
+      <DependentUpon>TimePickerField.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\FieldGroupCard.xaml.cs">
+      <DependentUpon>FieldGroupCard.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\FormControl.xaml.cs">
+      <DependentUpon>FormControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ListControls\GroupCard.xaml.cs">
+      <DependentUpon>GroupCard.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ListControls\Item.xaml.cs">
+      <DependentUpon>Item.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\AFG_MessageBox.xaml.cs">
+      <DependentUpon>AFG_MessageBox.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\AFG_MessageDisplayBox.xaml.cs">
+      <DependentUpon>AFG_MessageDisplayBox.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\MaterialDesignThemes.4.0.0\build\MaterialDesignThemes.targets" Condition="Exists('..\packages\MaterialDesignThemes.4.0.0\build\MaterialDesignThemes.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\MaterialDesignThemes.4.0.0\build\MaterialDesignThemes.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MaterialDesignThemes.4.0.0\build\MaterialDesignThemes.targets'))" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <ItemGroup>
+    <ReferencePath Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\packages\MaterialDesignColors.2.0.0\lib\net452\MaterialDesignColors.dll" />
+    <ReferencePath Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\packages\MaterialDesignThemes.4.0.0\lib\net452\MaterialDesignThemes.Wpf.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.1\mscorlib.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.1\PresentationCore.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.1\PresentationFramework.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.1\System.Core.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.1\System.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.1\System.Drawing.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.1\System.Windows.Forms.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.1\System.Xaml.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.1\System.Xml.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.1\WindowsBase.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\Card.g.cs" />
+    <Compile Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\Controls\BooleanField.g.cs" />
+    <Compile Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\Controls\ColourPickerField.g.cs" />
+    <Compile Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\Controls\CustomControlBase.g.cs" />
+    <Compile Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\Controls\DoubleField.g.cs" />
+    <Compile Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\Controls\SpecialDropdownField.g.cs" />
+    <Compile Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\Controls\FloatField.g.cs" />
+    <Compile Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\Controls\FolderBrowserField.g.cs" />
+    <Compile Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\Controls\IntField.g.cs" />
+    <Compile Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\Controls\PasswordField.g.cs" />
+    <Compile Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\Controls\StringField.g.cs" />
+    <Compile Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\Controls\TimePickerField.g.cs" />
+    <Compile Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\FieldGroupCard.g.cs" />
+    <Compile Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\FormControl.g.cs" />
+    <Compile Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\ListControls\GroupCard.g.cs" />
+    <Compile Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\AutoFormGenorator\obj\Debug\UserControls\ListControls\Item.g.cs" />
+    <Compile Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\AutoFormGenorator\obj\Debug\Windows\AFG_MessageBox.g.cs" />
+    <Compile Include="C:\Users\userc\Dropbox\Alpha c#\AutoFormGenorator\AutoFormGenorator\obj\Debug\Windows\AFG_MessageDisplayBox.g.cs" />
+  </ItemGroup>
+</Project>

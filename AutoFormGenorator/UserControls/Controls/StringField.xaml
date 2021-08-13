@@ -8,7 +8,7 @@
     <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,5,10,5">
         <WrapPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <TextBlock Foreground="#FFFFFF" FontSize="16" x:Name="DisplayNameTextBlock" Text=" test" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0,0,10,0"/>
-            <TextBox x:Name="ValueTextBox" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Foreground="#FFFFFF" Background="Transparent"/>
+            <TextBox x:Name="ValueTextBox" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Foreground="#FFFFFF" Background="Transparent" PreviewTextInput="ValueTextBox_OnPreviewTextInput"/>
         </WrapPanel>
     </Grid>
 </UserControl>

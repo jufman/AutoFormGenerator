@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -18,6 +19,8 @@ namespace AutoFormGenerator.UserControls.Controls
 
         public event ControlModified OnControlModified;
         public event ControlFinishedEditing OnControlFinishedEditing;
+
+        private FormControlSettings _formControlSettings;
 
         public IntField()
         {
@@ -41,11 +44,29 @@ namespace AutoFormGenerator.UserControls.Controls
         private void ValueTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
             var textBox = sender as TextBox;
-            e.Handled = Regex.IsMatch(e.Text, "[^0-9]+");
+            var Handled = Regex.IsMatch(e.Text, "[^0-9]+");
+
+            if (_formControlSettings.Regex != String.Empty && !Handled && !Regex.IsMatch(ValueTextBox.Text + e.Text, _formControlSettings.Regex))
+            {
+                Handled = true;
+            }
+
+            if (Handled)
+            {
+                ValueTextBox.CaretBrush = Brushes.Red;
+            }
+            else
+            {
+                ValueTextBox.CaretBrush = (Brush)new BrushConverter().ConvertFromString("#FFABABAB");
+            }
+
+            e.Handled = Handled;
         }
 
         public void BuildDisplay(FormControlSettings formControlSettings)
         {
+            _formControlSettings = formControlSettings;
+
             SetVisibility(formControlSettings.IsVisible);
 
             Width = formControlSettings.ControlWidth;

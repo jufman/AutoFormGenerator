@@ -18,6 +18,8 @@ namespace AutoFormGenerator.Object
         public bool CanEdit { get; set; } = true;
         public bool IsVisible { get; set; } = true;
 
+        public string Regex { get; set; } = string.Empty;
+
         public Type CustomControl { get; set; }
 
         public Type NestedClassType { get; set; } = null;

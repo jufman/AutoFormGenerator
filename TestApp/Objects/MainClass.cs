@@ -59,6 +59,12 @@ namespace TestApp.Objects
         [FormField(IsVisible = false)]
         public float DontShowMe { get; set; }
 
+        [FormField(Regex = "^([1-9]|1[0-6])$")]
+        public int Only1Th16 { get; set; } = 1;
+
+        [FormField(Regex = "^[^0-9]+$")]
+        public string NoNumbers { get; set; }
+
 
         [FormField(Type = Types.NestedSettings)]
         public NestedClass NestedClass { get; set; }

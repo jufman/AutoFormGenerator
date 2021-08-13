@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -18,6 +19,8 @@ namespace AutoFormGenerator.UserControls.Controls
 
         public event ControlModified OnControlModified;
         public event ControlFinishedEditing OnControlFinishedEditing;
+
+        private FormControlSettings _formControlSettings;
 
         public DoubleField()
         {
@@ -47,11 +50,27 @@ namespace AutoFormGenerator.UserControls.Controls
             double num = 0;
             NotBlock = !double.TryParse(ValueTextBox.Text + e.Text, out num);
 
+            if (_formControlSettings.Regex != String.Empty && !NotBlock && !Regex.IsMatch(ValueTextBox.Text + e.Text, _formControlSettings.Regex))
+            {
+                NotBlock = true;
+            }
+
+            if (NotBlock)
+            {
+                ValueTextBox.CaretBrush = Brushes.Red;
+            }
+            else
+            {
+                ValueTextBox.CaretBrush = (Brush)new BrushConverter().ConvertFromString("#FFABABAB");
+            }
+
             e.Handled = NotBlock;
         }
 
         public void BuildDisplay(FormControlSettings formControlSettings)
         {
+            _formControlSettings = formControlSettings;
+
             SetVisibility(formControlSettings.IsVisible);
 
             Width = formControlSettings.ControlWidth;

@@ -20,6 +20,7 @@ namespace AutoFormGenerator.Object
         public bool IsVisible => FormField.IsVisible;
         public string ToolTip => FormField.ToolTip;
         public double ControlWidth => (DisplayNameWidth + ValueWidth) + 50;
+        public string Regex => FormField.Regex;
 
 
         public PropertyInfo PropInfo { get; set; }
