@@ -19,7 +19,6 @@ namespace AutoFormGenerator
             "pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml",
         };
 
-
         public static List<PropertyInfo> GetProperties(Type baseType, Types type)
         {
             var rawPropertyInfos = new List<PropertyInfo>(baseType.GetProperties());

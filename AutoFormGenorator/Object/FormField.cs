@@ -16,6 +16,7 @@ namespace AutoFormGenerator.Object
         public double ControlWidth { get; set; } = Double.NaN;
 
         public bool CanEdit { get; set; } = true;
+        public bool IsVisible { get; set; } = true;
 
         public Type CustomControl { get; set; }
 

@@ -34,6 +34,8 @@ namespace AutoFormGenerator.UserControls.Controls
 
         public void BuildDisplay(FormControlSettings formControlSettings, Interfaces.ICustomControl customControlClass)
         {
+            SetVisibility(formControlSettings.IsVisible);
+
             CustomControlClass = customControlClass;
 
             var customControl = (UserControl) customControlClass;
@@ -88,6 +90,10 @@ namespace AutoFormGenerator.UserControls.Controls
         public bool Validate()
         {
             return CustomControlClass.Validate();
+        }
+        public void SetVisibility(bool IsVisible)
+        {
+            this.Visibility = IsVisible ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 }

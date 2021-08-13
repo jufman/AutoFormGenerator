@@ -267,5 +267,14 @@ namespace TestApp
         {
             AutoFormGenerator.Windows.AFG_MessageDisplayBoxWindow.Show("This is a test");
         }
+
+        private void DisplayFieldsButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            afgLogics.ForEach(AFG =>
+            {
+                AFG.SetFieldVisibility<Objects.MainClass>("DontShowMe", true); 
+
+            });
+        }
     }
 }

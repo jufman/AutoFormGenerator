@@ -1,1 +1,1 @@
-nuget.exe pack -Properties Configuration=Release
+nuget.exe pack AutoFormGenerator.csproj -Properties Configuration=Release

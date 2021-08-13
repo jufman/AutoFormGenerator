@@ -46,6 +46,8 @@ namespace AutoFormGenerator.UserControls.Controls
 
         public void BuildDisplay(FormControlSettings formControlSettings)
         {
+            SetVisibility(formControlSettings.IsVisible);
+
             Width = formControlSettings.ControlWidth;
             Height = formControlSettings.ControlHeight;
 
@@ -126,5 +128,10 @@ namespace AutoFormGenerator.UserControls.Controls
             return ValueTextBox.Text;
         }
 
+
+        public void SetVisibility(bool IsVisible)
+        {
+            this.Visibility = IsVisible ? Visibility.Visible : Visibility.Collapsed;
+        }
     }
 }

@@ -86,6 +86,15 @@ namespace AutoFormGenerator
             };
         }
 
+        public void SetFieldVisibility<T>(string FieldName, bool IsVisible)
+        {
+            var objectType = typeof(T);
+            if (ControlFields.TryGetValue(objectType.FullName + "." + FieldName, out IControlField Field))
+            {
+                Field.SetVisibility(IsVisible);
+            }
+        }
+
         public bool Compile()
         {
             var valid = true;

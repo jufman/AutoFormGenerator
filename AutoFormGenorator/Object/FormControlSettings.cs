@@ -17,6 +17,7 @@ namespace AutoFormGenerator.Object
         public bool FixedWidth => !double.IsNaN(DisplayNameWidth);
         public bool Required => FormField.Required;
         public bool CanEdit => FormField.CanEdit;
+        public bool IsVisible => FormField.IsVisible;
         public string ToolTip => FormField.ToolTip;
         public double ControlWidth => (DisplayNameWidth + ValueWidth) + 50;
 

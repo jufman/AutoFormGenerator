@@ -56,6 +56,10 @@ namespace TestApp.Objects
         public string FolderLocation { get; set; } = "";
 
 
+        [FormField(IsVisible = false)]
+        public float DontShowMe { get; set; }
+
+
         [FormField(Type = Types.NestedSettings)]
         public NestedClass NestedClass { get; set; }
 

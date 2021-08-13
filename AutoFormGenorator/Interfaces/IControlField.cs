@@ -15,6 +15,6 @@ namespace AutoFormGenerator.Interfaces
         object GetValue();
         void BuildDisplay(FormControlSettings formControlSettings);
         bool Validate();
-
+        void SetVisibility(bool IsVisible);
     }
 }

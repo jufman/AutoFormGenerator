@@ -51,6 +51,8 @@ namespace AutoFormGenerator.UserControls.Controls
 
         public void BuildDisplay(FormControlSettings formControlSettings)
         {
+            SetVisibility(formControlSettings.IsVisible);
+
             Width = formControlSettings.ControlWidth;
             Height = formControlSettings.ControlHeight;
 
@@ -105,6 +107,11 @@ namespace AutoFormGenerator.UserControls.Controls
         {
             var CurrentValue = TimePicker.SelectedTime?.TimeOfDay.TotalSeconds ?? 0;
             return CurrentValue;
+        }
+
+        public void SetVisibility(bool IsVisible)
+        {
+            this.Visibility = IsVisible ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 }
