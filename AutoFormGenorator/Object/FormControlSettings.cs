@@ -89,7 +89,15 @@ namespace AutoFormGenerator.Object
 
         public bool SetValue(object Value)
         {
-            PropInfo.SetValue(Class, Value);
+            try
+            {
+                PropInfo.SetValue(Class, Value);
+            }
+            catch
+            {
+                return false;
+            }
+
             return true;
         }
     }

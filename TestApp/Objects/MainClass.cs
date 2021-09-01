@@ -76,5 +76,10 @@ namespace TestApp.Objects
         [FormField]
         public List<ExtendClass> ExtendClasses { get; set; } = new List<ExtendClass>();
 
+        public void Thing()
+        {
+
+        }
+
     }
 }

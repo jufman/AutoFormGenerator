@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,6 +16,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using AutoFormGenerator;
 using AutoFormGenerator.Object;
+using AutoFormGenerator.UserControls.ListControls;
+using TestApp.Objects;
 
 namespace TestApp
 {
@@ -169,13 +172,13 @@ namespace TestApp
                     });
                 });
 
-                AFG.PopulateSpecialDropdown<Objects.MainClass>("TestDropDown", CarItems);
+                AFG.PopulateSpecialDropdown<Objects.MainClass>(MainClass => MainClass.TestDropDown, CarItems);
 
-                AFG.PopulateSpecialDropdown<Objects.MainClass>("Act", new List<FormDropdownItem>
+                AFG.PopulateSpecialDropdown<Objects.MainClass>(MainClass => MainClass.Act, new List<FormDropdownItem>
                 {
                     new FormDropdownItem()
                     {
-                        Value = 1.0,
+                        Value = "Car",
                         DisplayValue = "Car"
                     }
                 });
@@ -190,9 +193,9 @@ namespace TestApp
                     });
                 });
 
-                AFG.PopulateSpecialDropdown<Objects.ExtendClass>("Act", ActItems);
+                AFG.PopulateSpecialDropdown<Objects.ExtendClass>(ExtendClass => ExtendClass.Act, ActItems);
 
-                AFG.PopulateFieldInsertItems<Objects.MainClass>("TestString", new List<FieldInsert>
+                AFG.PopulateFieldInsertItems<Objects.MainClass>(MainClass => MainClass.TestString, new List<FieldInsert>
                 {
                     new FieldInsert()
                     {
@@ -202,13 +205,13 @@ namespace TestApp
                 });
 
 
-                AFG.SubscribeToFieldFinishedEditing<Objects.MainClass>("TestString", (name, value) =>
+                AFG.SubscribeToFieldFinishedEditing<Objects.MainClass>(MainClass => MainClass.TestString, (name, value) =>
                 {
                     MessageBox.Show("Changed!!");
                 });
 
 
-                AFG.SubscribeToFieldModified<Objects.MainClass>("TestString", (name, value) =>
+                AFG.SubscribeToFieldModified<Objects.MainClass>(MainClass => MainClass.TestString, (name, value) =>
                 {
                     MessageBox.Show("Edit");
                 });
@@ -217,7 +220,7 @@ namespace TestApp
                 {
                     MessageBox.Show("Multi Changed");
 
-                }, "TestString", "TestInt");
+                }, MainClass => MainClass.TestString, MainClass => MainClass.TestInt);
 
                 ContentStackPanel.Children.Add(AFG.formControl);
 
@@ -235,6 +238,10 @@ namespace TestApp
             {
                 logic.Compile();
             });
+
+            Test<Objects.MainClass>(aw => aw.Only1Th16);
+
+            Test<Objects.NestedClass>(aw => aw.TestDouble);
         }
 
         private void ExtendButton_OnClick(object sender, RoutedEventArgs e)
@@ -251,7 +258,7 @@ namespace TestApp
                     });
                 });
 
-                AFG.PopulateSpecialDropdown<Objects.ExtendClass>("Act", ActItems);
+                AFG.PopulateSpecialDropdown<Objects.ExtendClass>(ExtendClass => ExtendClass.Act, ActItems);
 
             });
         }
@@ -272,9 +279,20 @@ namespace TestApp
         {
             afgLogics.ForEach(AFG =>
             {
-                AFG.SetFieldVisibility<Objects.MainClass>("DontShowMe", true); 
-
+                AFG.SetFieldVisibility<Objects.MainClass>(Item => Item.DontShowMe, true);
             });
+        }
+
+        private void Test<T>(Expression<Func<T, object>> expression)
+        {
+            var memberExpression = (expression.Body as MemberExpression ?? ((UnaryExpression)expression.Body).Operand as MemberExpression)?.Member;
+            if (memberExpression?.DeclaringType is null)
+            {
+                return;
+            }
+
+            var fullname = memberExpression.DeclaringType.FullName + "." + memberExpression.Name;
+            Console.WriteLine(fullname);
         }
     }
 }

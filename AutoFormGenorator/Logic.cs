@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
@@ -47,38 +48,55 @@ namespace AutoFormGenerator
             Helpers.ApplyMaterialDesignPack(formControl);
         }
 
-        public void SubscribeToFieldModified<T>(string fieldName, Events.PropertyModified a)
+        public void SubscribeToFieldModified<T>(Expression<Func<T, object>> expression, Events.PropertyModified a)
         {
             OnPropertyModified += (localFieldName, value) =>
             {
-                var objectType = typeof(T);
-                if (objectType.FullName + "." + fieldName == localFieldName)
+                var fullname = GetFieldNameFromExpression(expression);
+
+                if (fullname == null)
+                {
+                    return;
+                }
+                if (fullname == localFieldName)
                 {
                     a.Invoke(localFieldName, value);
                 }
             };
         }
 
-        public void SubscribeToFieldFinishedEditing<T>(string fieldName, Events.PropertyModified a)
+        public void SubscribeToFieldFinishedEditing<T>(Expression<Func<T, object>> expression, Events.PropertyModified a)
         {
             OnPropertyFinishedEditing += (localFieldName, value) =>
             {
-                var objectType = typeof(T);
-                if (objectType.FullName + "." + fieldName == localFieldName)
+                var fullname = GetFieldNameFromExpression(expression);
+
+                if (fullname == null)
+                {
+                    return;
+                }
+
+                if (fullname == localFieldName)
                 {
                     a.Invoke(localFieldName, value);
                 }
             };
         }
 
-        public void SubscribeToFieldsFinishedEditing<T>(Events.PropertyModified a, params string[] fieldNames)
+        public void SubscribeToFieldsFinishedEditing<T>(Events.PropertyModified a, params Expression<Func<T, object>>[] expressions)
         {
             OnPropertyFinishedEditing += (localFieldName, value) =>
             {
-                var objectType = typeof(T);
-                foreach (var fieldName in fieldNames)
+                foreach (var expression in expressions)
                 {
-                    if (objectType.FullName + "." + fieldName == localFieldName)
+                    var fullname = GetFieldNameFromExpression(expression);
+
+                    if (fullname == null)
+                    {
+                        return;
+                    }
+
+                    if (fullname == localFieldName)
                     {
                         a.Invoke(localFieldName, value);
                     }
@@ -86,13 +104,51 @@ namespace AutoFormGenerator
             };
         }
 
-        public void SetFieldVisibility<T>(string FieldName, bool IsVisible)
+        public void SetFieldVisibility<T>(Expression<Func<T, object>> expression, bool IsVisible)
         {
-            var objectType = typeof(T);
-            if (ControlFields.TryGetValue(objectType.FullName + "." + FieldName, out IControlField Field))
+            var fullname = GetFieldNameFromExpression(expression);
+
+            if (fullname == null)
+            {
+                return;
+            }
+
+            if (ControlFields.TryGetValue(fullname, out IControlField Field))
             {
                 Field.SetVisibility(IsVisible);
             }
+        }
+
+        public void PopulateSpecialDropdown<T>(Expression<Func<T, object>> expression, List<FormDropdownItem> DropdownItems)
+        {
+            var fullname = GetFieldNameFromExpression(expression);
+
+            if (fullname == null)
+            {
+                return;
+            }
+
+            OnAddSpecialDropdownItems?.Invoke(fullname, DropdownItems);
+
+            OnSpecialDropdownDisplaying += (name, act) =>
+            {
+                if (name == fullname)
+                {
+                    act.Invoke(fullname, DropdownItems);
+                }
+            };
+        }
+
+        public void PopulateFieldInsertItems<T>(Expression<Func<T, object>> expression, List<FieldInsert> FieldInsertItems)
+        {
+            var fullname = GetFieldNameFromExpression(expression);
+
+            if (fullname == null)
+            {
+                return;
+            }
+
+            OnAddFieldInsertItems?.Invoke(fullname, FieldInsertItems);
         }
 
         public bool Compile()
@@ -695,26 +751,17 @@ namespace AutoFormGenerator
             return userControl;
         }
 
-        public void PopulateSpecialDropdown<T>(string FieldName, List<FormDropdownItem> DropdownItems)
+        private string GetFieldNameFromExpression<T>(Expression<Func<T, object>> expression)
         {
-            var objectType = typeof(T);
-
-            OnAddSpecialDropdownItems?.Invoke(objectType.FullName + "." + FieldName, DropdownItems);
-
-            OnSpecialDropdownDisplaying += (name, act) =>
+            var memberExpression = (expression.Body as MemberExpression ?? ((UnaryExpression)expression.Body).Operand as MemberExpression)?.Member;
+            var expressionRoot = (expression.Body as MemberExpression ?? ((UnaryExpression)expression.Body).Operand as MemberExpression)?.Expression;
+            if (memberExpression?.DeclaringType is null || expressionRoot == null)
             {
-                if (name == objectType.FullName + "." + FieldName)
-                {
-                    act.Invoke(objectType.FullName + "." + FieldName, DropdownItems);
-                }
-            };
-        }
+                return null;
+            }
 
-        public void PopulateFieldInsertItems<T>(string FieldName, List<FieldInsert> FieldInsertItems)
-        {
-            var objectType = typeof(T);
-
-            OnAddFieldInsertItems?.Invoke(objectType.FullName + "." + FieldName, FieldInsertItems);
+            var fullname = expressionRoot.Type.FullName + "." + memberExpression.Name;
+            return fullname;
         }
 
         private class WrapperClass
