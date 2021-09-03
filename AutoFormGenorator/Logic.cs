@@ -753,14 +753,30 @@ namespace AutoFormGenerator
 
         private string GetFieldNameFromExpression<T>(Expression<Func<T, object>> expression)
         {
-            var memberExpression = (expression.Body as MemberExpression ?? ((UnaryExpression)expression.Body).Operand as MemberExpression)?.Member;
-            var expressionRoot = (expression.Body as MemberExpression ?? ((UnaryExpression)expression.Body).Operand as MemberExpression)?.Expression;
-            if (memberExpression?.DeclaringType is null || expressionRoot == null)
+            var fullname = "";
+            switch (expression.Body.NodeType)
             {
-                return null;
+                case ExpressionType.Convert:
+                case ExpressionType.MemberAccess:
+                {
+                    var memberExpression = (expression.Body as MemberExpression ?? ((UnaryExpression)expression.Body).Operand as MemberExpression)?.Member;
+                    var expressionRoot = (expression.Body as MemberExpression ?? ((UnaryExpression)expression.Body).Operand as MemberExpression)?.Expression;
+                    if (memberExpression?.DeclaringType is null || expressionRoot == null)
+                    {
+                        return null;
+                    }
+
+                    fullname = expressionRoot.Type.FullName + "." + memberExpression.Name;
+                    break;
+                }
+                case ExpressionType.Constant:
+                {
+                    var sa = expression.Body as ConstantExpression;
+                    fullname = typeof(T).FullName + "." + sa?.Value;
+                    break;
+                }
             }
 
-            var fullname = expressionRoot.Type.FullName + "." + memberExpression.Name;
             return fullname;
         }
 

@@ -239,9 +239,9 @@ namespace TestApp
                 logic.Compile();
             });
 
-            Test<Objects.MainClass>(aw => aw.Only1Th16);
-
             Test<Objects.NestedClass>(aw => aw.TestDouble);
+
+            Test<Objects.MainClass>(MainClass => MainClass.Act);
         }
 
         private void ExtendButton_OnClick(object sender, RoutedEventArgs e)
@@ -285,13 +285,30 @@ namespace TestApp
 
         private void Test<T>(Expression<Func<T, object>> expression)
         {
-            var memberExpression = (expression.Body as MemberExpression ?? ((UnaryExpression)expression.Body).Operand as MemberExpression)?.Member;
-            if (memberExpression?.DeclaringType is null)
+            var fullname = "";
+            switch (expression.Body.NodeType)
             {
-                return;
+                case ExpressionType.Convert:
+                case ExpressionType.MemberAccess:
+                {
+                    var memberExpression = (expression.Body as MemberExpression ?? ((UnaryExpression)expression.Body).Operand as MemberExpression)?.Member;
+                    var expressionRoot = (expression.Body as MemberExpression ?? ((UnaryExpression)expression.Body).Operand as MemberExpression)?.Expression;
+                    if (memberExpression?.DeclaringType is null || expressionRoot == null)
+                    {
+                        return;
+                    }
+
+                    fullname = expressionRoot.Type.FullName + "." + memberExpression.Name;
+                    break;
+                }
+                case ExpressionType.Constant:
+                {
+                    var sa = expression.Body as ConstantExpression;
+                    fullname = typeof(T).FullName + "." + sa?.Value;
+                    break;
+                }
             }
 
-            var fullname = memberExpression.DeclaringType.FullName + "." + memberExpression.Name;
             Console.WriteLine(fullname);
         }
     }
