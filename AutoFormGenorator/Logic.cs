@@ -338,7 +338,7 @@ namespace AutoFormGenerator
             return userControls;
         }
 
-        private UserControls.ListControls.Item AddNewListItem(object item, System.Collections.IList list, UserControls.ListControls.GroupCard rootFieldGroupCard, string feildName)
+        private UserControls.ListControls.Item AddNewListItem(object item, System.Collections.IList list, UserControls.ListControls.GroupCard rootFieldGroupCard, string fieldName)
         {
             var listControlItem = new UserControls.ListControls.Item();
 
@@ -357,7 +357,7 @@ namespace AutoFormGenerator
                 {
                     rootFieldGroupCard.ControlsWrapPanel.Children.Remove(listControlItem);
                     list.Remove(item);
-                    OnPropertyModified?.Invoke(feildName, null);
+                    OnPropertyModified?.Invoke(fieldName, null);
                 }
             };
 
@@ -366,7 +366,7 @@ namespace AutoFormGenerator
 
         private List<UserControl> HandleNestedSettings(object rootClass)
         {
-            var nestedSettings = Helpers.GetProperties(rootClass.GetType(), Types.NestedSettings);
+            var nestedSettings = Helpers.GetProperties(rootClass.GetType(), Types.NestedClass);
 
             var controls = new List<UserControl>();
 

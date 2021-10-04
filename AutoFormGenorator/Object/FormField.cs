@@ -46,7 +46,7 @@ namespace AutoFormGenerator.Object
 
     public enum Types
     {
-        NestedSettings,
+        NestedClass,
         NestedList,
         Prop
     }

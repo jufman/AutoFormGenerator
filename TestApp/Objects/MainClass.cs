@@ -66,11 +66,11 @@ namespace TestApp.Objects
         public string NoNumbers { get; set; }
 
 
-        [FormField(Type = Types.NestedSettings)]
+        [FormField(Type = Types.NestedClass)]
         public NestedClass NestedClass { get; set; }
 
 
-        [FormField(Type = Types.NestedSettings)]
+        [FormField(Type = Types.NestedClass)]
         public ShrinkClass ShrinkClass { get; set; }
 
         [FormField]
