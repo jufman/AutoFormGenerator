@@ -48,6 +48,7 @@ namespace AutoFormGenerator.Object
     {
         NestedClass,
         NestedList,
+        ItemList,
         Prop
     }
 

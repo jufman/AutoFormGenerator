@@ -76,6 +76,21 @@ namespace TestApp.Objects
         [FormField]
         public List<ExtendClass> ExtendClasses { get; set; } = new List<ExtendClass>();
 
+        [FormField(Type = Types.ItemList, ControlWidth = 200)]
+        public List<string> StringItems { get; set; } = new List<string>
+        {
+            "TEST",
+            "Another Item"
+        };
+
+        [FormField(Type = Types.ItemList, DisplayName = "Int Numbers")]
+        public List<int> IntItems { get; set; } = new List<int>
+        {
+            1,
+            2,
+            3
+        };
+
         public void Thing()
         {
 
