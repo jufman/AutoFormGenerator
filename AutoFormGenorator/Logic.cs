@@ -333,6 +333,7 @@ namespace AutoFormGenerator
                         FieldName = "Item",
                         ObjectType = objectType,
                         FormField = formField,
+                        Value = ""
                     };
 
                     var controlItem = AddNewItemListItem(formControlSettings, rootFieldGroupCard, list, fieldName);
