@@ -27,6 +27,7 @@ namespace TestApp
     public partial class MainWindow : Window
     {
         private List<AutoFormGenerator.Logic> afgLogics = new List<Logic>();
+        private AutoFormGenerator.Logic AFG_root = new AutoFormGenerator.Logic();
 
         private List<string> RandomList1 = new List<string>()
         {
@@ -154,12 +155,14 @@ namespace TestApp
                 var AFG = new AutoFormGenerator.Logic();
                 AFG.Debug = true;
 
-                AFG.formControl.Loaded += (o, args) =>
+                var formControl = AFG.BuildFormControl(new Objects.MainClass());
+
+                formControl.Loaded += (o, args) =>
                 {
                     LoadTimeLabel.Content = $"Load Time: {StopW.ElapsedMilliseconds}ms";
                 };
 
-                AFG.BuildFormControl(new Objects.MainClass());
+               
 
                 var CarItems = new List<FormDropdownItem>();
 
@@ -222,7 +225,7 @@ namespace TestApp
 
                 }, MainClass => MainClass.TestString, MainClass => MainClass.TestInt);
 
-                ContentStackPanel.Children.Add(AFG.formControl);
+                ContentStackPanel.Children.Add(formControl);
 
                 afgLogics.Add(AFG);
             }
@@ -310,6 +313,15 @@ namespace TestApp
             }
 
             Console.WriteLine(fullname);
+        }
+
+        private void TestIssueButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            ContentStackPanel.Children.Clear();
+            AFG_root.Debug = true;
+            var formControl = AFG_root.BuildFormControl(new Objects.MainClass());
+
+            ContentStackPanel.Children.Add(formControl);
         }
     }
 }

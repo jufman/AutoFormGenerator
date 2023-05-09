@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using System.Windows.Media;
 using AutoFormGenerator.Interfaces;
 using AutoFormGenerator.Object;
+using AutoFormGenerator.UserControls;
 using AutoFormGenerator.UserControls.Controls;
 using MaterialDesignColors;
 using MaterialDesignThemes.Wpf;
@@ -36,7 +37,7 @@ namespace AutoFormGenerator
 
         private Dictionary<string, IControlField> ControlFields = new Dictionary<string, IControlField>();
 
-        public UserControls.FormControl formControl;
+        //public UserControls.FormControl formControl;
 
         public bool Debug { get; set; }
         public bool HasChanged { get; set; } = false;
@@ -44,8 +45,7 @@ namespace AutoFormGenerator
       
         public Logic()
         {
-            formControl = new UserControls.FormControl();
-            Helpers.ApplyMaterialDesignPack(formControl);
+            
         }
 
         public void SubscribeToFieldModified<T>(Expression<Func<T, object>> expression, Events.PropertyModified a)
@@ -168,6 +168,9 @@ namespace AutoFormGenerator
 
         public UserControls.FormControl BuildFormControl<T>(T Class)
         {
+            var formControl = new UserControls.FormControl();
+            Helpers.ApplyMaterialDesignPack(formControl);
+
             if (Debug)
             {
                 formControl.DebugStatsWrapPanel.Visibility = Visibility.Visible;
