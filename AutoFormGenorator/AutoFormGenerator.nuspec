@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>AutoFormGenerator.Jnet.Systems</id>
-    <version>1.7.2</version>
+    <version>1.7.3</version>
     <authors>Justin Campbell</authors>
     <title>Auto Form Generator</title>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -10,7 +10,7 @@
     <projectUrl>https://github.com/jufman/AutoFormGenorator</projectUrl>
     <description>Library that can generate WPF Forms using decoration tags</description>
     <releaseNotes>Bug Fixes.</releaseNotes>
-    <copyright>Copyright ©2021 Jnet Systems</copyright>
+    <copyright>Copyright ©2023 Jnet Systems</copyright>
     <tags>WPF wpftoolkit Material Design Jnet.Systems</tags>
   </metadata>
 </package>
